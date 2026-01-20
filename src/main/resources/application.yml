@@ -6,5 +6,10 @@ spring:
     name : projectx
 
 
+  docker:
+    compose:
+      enabled: false
+
+
 
 
