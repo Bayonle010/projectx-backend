@@ -9,6 +9,9 @@ spring:
     compose:
       enabled: false
 
+  devtools:
+    restart:
+      enabled: false
 
 
 
