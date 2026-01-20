@@ -5,6 +5,11 @@ spring:
   application:
     name : projectx
 
+  docker:
+    compose:
+      enabled: false
+
+
 
 
 
