@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name : projectx
+
+  profiles:
+    active: develop
+
+  docker:
+    compose:
+      enabled: false
+
+  devtools:
+    restart:
+      enabled: false
+
+
+
+
