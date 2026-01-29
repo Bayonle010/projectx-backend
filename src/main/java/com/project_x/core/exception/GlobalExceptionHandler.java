@@ -59,6 +59,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidCredentialException.class)
+    public ResponseEntity<ApiResponse> handleInvalidCredentialsException(InvalidCredentialException e) {
+        log.error("An unexpected error occurred {}", e.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.UNAUTHORIZED.value(), "Invalid Credential", e.getMessage(), null);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+
 
 
 }
