@@ -69,6 +69,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(NetworkConnectivityException.class)
+    public ResponseEntity<ApiResponse> handleNetworkConnectivityException(NetworkConnectivityException e) {
+        log.error("Network connectivity issue: {}", e.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.SERVICE_UNAVAILABLE.value(), "InternetConnection Error.", e.getMessage(), null
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
 
 
 
