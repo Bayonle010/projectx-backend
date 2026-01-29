@@ -32,6 +32,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleAccessDeniedException(AccessDeniedException e){
+        log.error("AccessDenied  {} ", e.getMessage());
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.FORBIDDEN.value(), "Access Denied", e.getMessage(), null
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse> handleBadRequestException(BadRequestException e){
