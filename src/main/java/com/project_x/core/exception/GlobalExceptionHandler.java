@@ -50,6 +50,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse> handleIllegalArgumentException(IllegalArgumentException e){
+        log.error("Illegal argument exception error {} ", e.getMessage());
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),"Illegal Argument", e.getMessage(), null
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
 
 
 }
