@@ -5,6 +5,9 @@ spring:
   application:
     name : projectx
 
+  config:
+    import: optional:file:.env.local[.properties]
+
 
   docker:
     compose:
