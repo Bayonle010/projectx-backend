@@ -1,11 +1,12 @@
 package com.project_x.user.entity;
 
+import com.project_x.role.Role;
+import com.project_x.user.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -89,11 +90,6 @@ public class User implements UserDetails {
 
     @Column(name = "gender")
     private String gender;
-
-
-    @Column(name = "session_version", nullable = false)
-    private long sessionVersion = 0L;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
