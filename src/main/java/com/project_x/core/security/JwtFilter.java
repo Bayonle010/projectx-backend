@@ -50,7 +50,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Load user from DB to read sessionVersion
             User user = userService.findUserByEmail(userEmail);
 
 
