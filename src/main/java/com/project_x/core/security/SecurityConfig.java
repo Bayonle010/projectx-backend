@@ -8,10 +8,13 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final CustomAuthEntryPoint customAuthEntryPoint;
+
     private static final String[] WHITE_LIST_URL = {
             "/swagger-ui/**",
             "/api/v1/auth/**",
@@ -26,6 +29,10 @@ public class SecurityConfig {
             "/swagger-ui.html",
             "/ws/**",
     };
+
+    public SecurityConfig(CustomAuthEntryPoint customAuthEntryPoint) {
+        this.customAuthEntryPoint = customAuthEntryPoint;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtAuthFilter) throws Exception {
@@ -43,6 +50,10 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource(){
+        return new CorsConfig().corsConfigurationSource();
     }
 
 }
