@@ -23,10 +23,12 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 public class JwtFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final CustomUserDetailsServiceImpl userDetailsService;
 
-    public JwtFilter(UserService userService, JwtUtil jwtUtil) {
+    public JwtFilter(UserService userService, JwtUtil jwtUtil, CustomUserDetailsServiceImpl userDetailsService) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
