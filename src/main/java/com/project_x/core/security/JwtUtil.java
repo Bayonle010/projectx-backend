@@ -1,10 +1,10 @@
 package com.project_x.core.security;
 
 import com.project_x.core.exception.InvalidCredentialException;
+import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.user.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.*;
