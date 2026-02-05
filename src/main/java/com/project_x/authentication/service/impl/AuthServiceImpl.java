@@ -4,6 +4,7 @@ import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.authentication.service.AuthService;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.core.util.NumberUtil;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
 import org.slf4j.Logger;
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
                 .firstname(formattedFirstname)
                 .lastname(formattedLastname)
                 .email(formatedEmailFromRequest)
-                .phoneNumber(NumberUtils.normalizePhoneNumber(request.getPhoneNumber()))
+                .phoneNumber(NumberUtil.normalizePhoneNumber(request.phoneNumber()))
                 .password(encodedPassword)
                 .userType(UserType.USER)
                 .isAccountNonExpired(true)
