@@ -1,25 +1,35 @@
 package com.project_x.core.security;
 
+import com.project_x.core.exception.InvalidCredentialException;
+import com.project_x.user.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.*;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.Month;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class JwtUtil {
-    private static final long ACCESS_TOKEN_DURATION_FOR_USER_IN_SEC = 24 * 60L *60L *360L * ;  // set to 15 minutes
+
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
+
+    private static final long ACCESS_TOKEN_DURATION_FOR_USER_IN_SEC = Duration.ofDays(30).getSeconds();  // set to 30 days
 
     private static final long ACCESS_TOKEN_DURATION_FOR_ADMIN_IN_SEC = 10 * 60L; // set to 10 minutes
 
-    private static final long REFRESH_TOKEN_DURATION_FOR_USER_IN_SEC =   24 * 60 * 60L * 360L; // set to 24 hours
+    private static final long REFRESH_TOKEN_DURATION_FOR_USER_IN_SEC =   Duration.ofDays(365).getSeconds(); // set to 1 year
 
     private static final long REFRESH_TOKEN_DURATION_FOR_ADMIN_IN_SEC = 1 * 60 * 60L; // set to 1 hour
 
-    private static final String ISSUER = "bayfi";
+    private static final String ISSUER = "project-x";
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
@@ -91,7 +101,6 @@ public class JwtUtil {
                 .claim("userType", user.getUserType())
                 .claim("username", user.getUsername())
                 .claim("tokenType", "ACCESS")
-                .claim("sessionVersion", user.getSessionVersion())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
@@ -137,7 +146,6 @@ public class JwtUtil {
                 .claim("username", user.getUsername())
                 .claim("tokenId", tokenId)
                 .claim("tokenType", "REFRESH")
-                .claim("sessionVersion", user.getSessionVersion())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
