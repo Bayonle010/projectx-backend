@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.jwt.*;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.Month;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -52,29 +51,6 @@ public class JwtUtil {
         return generateAccessToken(user, ACCESS_TOKEN_DURATION_FOR_ADMIN_IN_SEC);
     }
 
-    public String generateAccessToken(Authentication auth, String email) {
-        // If you prefer building from Authentication instead of User
-        var roles = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                .collect(Collectors.toList());
-
-        if (roles.isEmpty()) {
-            roles.add("ROLE_USER");
-        }
-
-        Instant now = Instant.now();
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(ISSUER)
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(ACCESS_TOKEN_DURATION_FOR_USER_IN_SEC))
-                .subject(email)
-                .claim("roles", roles)
-                .build();
-
-        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-    }
 
     private String generateAccessToken(User user, long durationSeconds) {
         List<String> roles = user.getAuthorities().stream()
