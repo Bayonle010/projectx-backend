@@ -1,5 +1,6 @@
 package com.project_x.authentication.controller;
 
+import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.authentication.service.AuthService;
 import com.project_x.core.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse> registerUser(AuthRequest request){
+    public ResponseEntity<ApiResponse> registerUser(RegistrationRequest request){
         return authService.registerUser(request);
     }
 }
