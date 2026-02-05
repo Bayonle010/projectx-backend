@@ -7,6 +7,7 @@ import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.util.NumberUtil;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
+import com.project_x.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -39,8 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
 
         if (userRepository.existsByEmail(formatedEmailFromRequest)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ResponseUtil.error(99, "user already exist", null, null));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseUtil.error(99, "email already exist", "register with a new email", null));
         }
 
 
