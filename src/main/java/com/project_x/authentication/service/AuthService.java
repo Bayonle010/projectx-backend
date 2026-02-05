@@ -1,5 +1,6 @@
 package com.project_x.authentication.service;
 
+import com.project_x.authentication.dto.request.LoginRequest;
 import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.core.response.ApiResponse;
 import org.springframework.http.ResponseEntity;

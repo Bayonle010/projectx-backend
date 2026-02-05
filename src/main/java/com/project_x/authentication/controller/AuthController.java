@@ -1,5 +1,6 @@
 package com.project_x.authentication.controller;
 
+import com.project_x.authentication.dto.request.LoginRequest;
 import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.authentication.service.AuthService;
 import com.project_x.core.response.ApiResponse;
@@ -26,6 +27,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> authenticate( @Valid @RequestBody LoginRequest request){
-        return authService.authenticate(request);
+        return authService.authenticateUser(request);
     }
 }
