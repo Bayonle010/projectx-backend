@@ -23,4 +23,9 @@ public class AuthController {
     public ResponseEntity<ApiResponse> registerUser( @Valid @RequestBody RegistrationRequest request){
         return authService.registerUser(request);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> authenticate( @Valid @RequestBody LoginRequest request){
+        return authService.authenticate(request);
+    }
 }
