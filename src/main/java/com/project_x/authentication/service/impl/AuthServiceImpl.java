@@ -1,6 +1,8 @@
 package com.project_x.authentication.service.impl;
 
+import com.project_x.authentication.builder.UserResponseBuilder;
 import com.project_x.authentication.dto.request.RegistrationRequest;
+import com.project_x.authentication.dto.response.UserResponse;
 import com.project_x.authentication.service.AuthService;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
@@ -24,7 +26,7 @@ import java.util.Optional;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private final static Logger log = LoggerFactory.getLogger(AuthServiceImpl.class)
+    private final static Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository userRepository;
     private final RoleService roleService;
 
@@ -78,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("Registering new new user: {}", newUser);
         User savedUser = userRepository.save(newUser);
 
-        UserResponseBuilder response = null;
+        UserResponse response = UserResponseBuilder.toDto(savedUser);
 
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
