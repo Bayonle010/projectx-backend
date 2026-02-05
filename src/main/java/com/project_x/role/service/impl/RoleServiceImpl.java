@@ -2,12 +2,14 @@ package com.project_x.role.service.impl;
 
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.role.Role;
 import com.project_x.role.RoleRepository;
 import com.project_x.role.service.RoleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("RoleService")
@@ -38,5 +40,10 @@ public class RoleServiceImpl implements RoleService {
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "Available roles fetched", "",  baseRoles, null)
         );
+    }
+
+    @Override
+    public Optional<Role> findByAuthority(String role) {
+        return roleRepository.findByAuthority("ROLE_USER");
     }
 }

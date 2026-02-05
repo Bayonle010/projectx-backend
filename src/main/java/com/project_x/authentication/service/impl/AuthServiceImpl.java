@@ -5,6 +5,8 @@ import com.project_x.authentication.service.AuthService;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.util.NumberUtil;
+import com.project_x.role.Role;
+import com.project_x.role.service.RoleService;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
 import com.project_x.user.repository.UserRepository;
@@ -24,11 +26,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final static Logger log = LoggerFactory.getLogger(AuthServiceImpl.class)
     private final UserRepository userRepository;
+    private final RoleService roleService;
 
     private final PasswordEncoder passwordEncoder;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -67,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
             newUser.setRoles(new HashSet<>());
         }
 
-        Optional<Role> userRole = roleRepository.findByAuthority("ROLE_USER");
+        Optional<Role> userRole = roleService.findByAuthority("ROLE_USER");
         userRole.ifPresent(role -> newUser.getRoles().add(role));
 
         // Save user to database
