@@ -5,8 +5,10 @@ import com.project_x.authentication.dto.request.LoginRequest;
 import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.authentication.dto.response.UserResponse;
 import com.project_x.authentication.service.AuthService;
+import com.project_x.authentication.token.service.TokenService;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.core.security.JwtUtil;
 import com.project_x.core.util.NumberUtil;
 import com.project_x.role.Role;
 import com.project_x.role.service.RoleService;
@@ -34,15 +36,17 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
-    private fin
-
+    private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
-    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, AuthenticationManager authenticationManager, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, TokenService tokenService) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -134,6 +138,7 @@ public class AuthServiceImpl implements AuthService {
         // 4) Generate tokens & persist refresh
         final String accessToken = jwtUtil.generateAccessTokenForUser(user);
         final String refreshToken = jwtUtil.generateRefreshTokenForUser(user);
+
         tokenService.saveRefreshToken(user, refreshToken);
 
         final UserDetailsResponse userInfo = UserDetailsResponse.from(user, wallet);
