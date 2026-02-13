@@ -6,10 +6,15 @@ services:
     container_name: project-x-app
     ports:
       - "8082:8082"
-    restart: unless-stopped
+    env_file:
+      -/etc/projectx/.env
+    volumes:
+      - /etc/projectx/.env:/app/.env:ro
     depends_on:
       db:
         condition: service_healthy
+
+    restart: unless-stopped
 
     networks:
       - project-x-network
@@ -18,12 +23,8 @@ services:
     image: postgres:17
     container_name: projectx_postgres_db
     restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
-    ports:
-      - "5433:5432"
+    env_file:
+      -/etc/projectx/.env
     command: [ "postgres", "-c", "listen_addresses=*" ]
     volumes:
       - db_data:/var/lib/postgresql/data
