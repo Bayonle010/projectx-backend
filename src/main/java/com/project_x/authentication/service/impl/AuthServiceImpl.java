@@ -1,6 +1,7 @@
 package com.project_x.authentication.service.impl;
 
 import com.project_x.authentication.builder.UserResponseBuilder;
+import com.project_x.authentication.dto.request.LoginRequest;
 import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.authentication.dto.response.UserResponse;
 import com.project_x.authentication.service.AuthService;
@@ -16,6 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -29,12 +33,15 @@ public class AuthServiceImpl implements AuthService {
     private final static Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository userRepository;
     private final RoleService roleService;
+    private final AuthenticationManager authenticationManager;
+    private fin
 
     private final PasswordEncoder passwordEncoder;
 
-    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
+        this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -86,5 +93,57 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ResponseUtil.success(0, "Registration successful", "user registered successfully", response, "" )
         );
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> authenticateUser(LoginRequest request) {
+        final String email = request.email().toLowerCase().trim();
+        final String password = request.password();
+
+        // 1) Authenticate: any bad email/password -> 400
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
+        } catch (AuthenticationException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseUtil.error(99, "invalid email or password", null, null));
+        }
+
+        // 2) Fetch user AFTER successful auth
+        final User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseUtil.error(99, "invalid email or password", null, null));
+        }
+
+        if (!UserType.USER.equals(user.getUserType())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ResponseUtil.error(99, "Access denied", null, null));
+        }
+
+
+        // 3) Business rules
+        if (!user.isEmailVerified()) {
+//            TODO : send email to the user
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", "", null));
+        }
+
+        // 4) Generate tokens & persist refresh
+        final String accessToken = jwtUtil.generateAccessTokenForUser(user);
+        final String refreshToken = jwtUtil.generateRefreshTokenForUser(user);
+        tokenService.saveRefreshToken(user, refreshToken);
+
+        final UserDetailsResponse userInfo = UserDetailsResponse.from(user, wallet);
+
+        final AuthResponse payload = AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userDetailsResponse(userInfo)
+                .build();
+
+        return ResponseEntity.ok(ResponseUtil.success(0, "success", payload, null));
     }
 }
