@@ -8,9 +8,7 @@ spring:
   docker:
     compose:
       enabled: false
-
-  config:
-    import: optional:file:.env.docker[.properties]
+  
 
   datasource:
     url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
