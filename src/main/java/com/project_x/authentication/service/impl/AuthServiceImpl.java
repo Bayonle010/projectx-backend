@@ -3,6 +3,7 @@ package com.project_x.authentication.service.impl;
 import com.project_x.authentication.builder.UserResponseBuilder;
 import com.project_x.authentication.dto.request.LoginRequest;
 import com.project_x.authentication.dto.request.RegistrationRequest;
+import com.project_x.authentication.dto.response.AuthResponse;
 import com.project_x.authentication.dto.response.UserResponse;
 import com.project_x.authentication.service.AuthService;
 import com.project_x.authentication.token.service.TokenService;
@@ -128,12 +129,12 @@ public class AuthServiceImpl implements AuthService {
 
 
         // 3) Business rules
-        if (!user.isEmailVerified()) {
-//            TODO : send email to the user
+        //         TODO : send email to the user
+//        if (!user.isEmailVerified()) {
 
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", "", null));
-        }
+//            return ResponseEntity.status(HttpStatus.OK)
+//                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", "", null));
+//        }
 
         // 4) Generate tokens & persist refresh
         final String accessToken = jwtUtil.generateAccessTokenForUser(user);
@@ -141,14 +142,14 @@ public class AuthServiceImpl implements AuthService {
 
         tokenService.saveRefreshToken(user, refreshToken);
 
-        final UserDetailsResponse userInfo = UserDetailsResponse.from(user, wallet);
+         UserResponse userInfo = UserResponseBuilder.toDto(user);
 
-        final AuthResponse payload = AuthResponse.builder()
+        AuthResponse payload = AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .userDetailsResponse(userInfo)
+                .userResponse(userInfo)
                 .build();
 
-        return ResponseEntity.ok(ResponseUtil.success(0, "success", payload, null));
+        return ResponseEntity.ok(ResponseUtil.success(0, "Login Successful", "User Authenticated Successfully", payload, null));
     }
 }
