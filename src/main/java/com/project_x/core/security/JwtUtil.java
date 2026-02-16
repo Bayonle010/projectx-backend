@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -56,9 +57,11 @@ public class JwtUtil {
 
     private String generateAccessToken(User user, long durationSeconds) {
         List<String> roles = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+                .map(GrantedAuthority::getAuthority).filter(Objects::nonNull)
                 .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                 .collect(Collectors.toList());
+
+        log.info("roles:" + roles.toString());
 
         if (roles.isEmpty()) {
             // default role depending on userType if you prefer
@@ -77,9 +80,10 @@ public class JwtUtil {
                 .claim("lastName", user.getLastname())
                 .claim("id", user.getId().toString())
                 .claim("userType", user.getUserType())
-                .claim("username", user.getUsername())
                 .claim("tokenType", "ACCESS")
                 .build();
+
+        log.info("claims are :" + claims.toString());
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
