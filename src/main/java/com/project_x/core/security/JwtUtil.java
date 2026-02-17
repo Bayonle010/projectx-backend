@@ -61,7 +61,6 @@ public class JwtUtil {
                 .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                 .collect(Collectors.toList());
 
-        log.info("roles:" + roles.toString());
 
         if (roles.isEmpty()) {
             // default role depending on userType if you prefer
@@ -83,7 +82,7 @@ public class JwtUtil {
                 .claim("tokenType", "ACCESS")
                 .build();
 
-        log.info("claims are :" + claims.toString());
+        log.info("claims are : {}" , claims);
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
@@ -102,8 +101,9 @@ public class JwtUtil {
     }
 
     private String generateRefreshToken(User user, long durationSeconds) {
+
         List<String> roles = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+                .map(GrantedAuthority::getAuthority).filter(Objects::nonNull)
                 .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                 .collect(Collectors.toList());
 
@@ -120,16 +120,12 @@ public class JwtUtil {
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(durationSeconds))
                 .subject(user.getEmail())
-                .claim("roles", roles)
                 .claim("firstName", user.getFirstname())
                 .claim("lastName", user.getLastname())
-                .claim("id", user.getId().toString())
-                .claim("userType", user.getUserType())
-                .claim("username", user.getUsername())
+                .claim("id", user.getId())
                 .claim("tokenId", tokenId)
                 .claim("tokenType", "REFRESH")
                 .build();
-
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
