@@ -15,8 +15,7 @@ public class UserResponseBuilder {
                 .email(user.getEmail())
                 .firstName(user.getFirstname())
                 .lastName(user.getLastname())
-                .isVerified(user.isEmailVerified())
-                .role(String.valueOf(roles))
+                .isEmailVerified(user.isEmailVerified())
                 .userType(String.valueOf(user.getUserType()))
                 .phoneNumber(user.getPhoneNumber())
                 .build();

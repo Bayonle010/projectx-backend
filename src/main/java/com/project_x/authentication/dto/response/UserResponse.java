@@ -15,8 +15,7 @@ public record UserResponse (
         String firstName,
         String lastName,
         String phoneNumber,
-        String role,
-        boolean isVerified,
+        boolean isEmailVerified,
         String userType
 ){
 }
