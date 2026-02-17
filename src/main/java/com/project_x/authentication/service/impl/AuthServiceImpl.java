@@ -2,11 +2,13 @@ package com.project_x.authentication.service.impl;
 
 import com.project_x.authentication.builder.UserResponseBuilder;
 import com.project_x.authentication.dto.request.LoginRequest;
+import com.project_x.authentication.dto.request.RefreshTokenRequest;
 import com.project_x.authentication.dto.request.RegistrationRequest;
 import com.project_x.authentication.dto.response.AuthResponse;
 import com.project_x.authentication.dto.response.UserResponse;
 import com.project_x.authentication.service.AuthService;
 import com.project_x.authentication.token.service.TokenService;
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.security.JwtUtil;
@@ -24,6 +26,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -151,5 +154,30 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         return ResponseEntity.ok(ResponseUtil.success(0, "Login Successful", "User Authenticated Successfully", payload, null));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.refreshToken();
+
+        Jwt jwt = jwtUtil.decodeJwt(refreshToken); // validates signature & expiry
+        String email = jwt.getSubject();
+
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Validate against DB (throws if invalid)
+        tokenService.isRefreshTokenValid(refreshToken, user);
+
+        // Generate new access token
+        String accessToken = jwtUtil.generateAccessTokenForUser(user);
+
+        AuthResponse authResponse = AuthResponse.builder()
+                .accessToken(accessToken)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ResponseUtil.success(0, "success", "new access token generated successfully", authResponse, null));
     }
 }

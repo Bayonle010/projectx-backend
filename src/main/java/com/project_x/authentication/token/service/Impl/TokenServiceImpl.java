@@ -91,7 +91,7 @@ public class TokenServiceImpl implements TokenService {
         return true;
     }
 
-    @Scheduled(fixedRate = 1000L * 60 * 60 * 24 * 365) // every 1 hour
+    @Scheduled(fixedRate = 1000L * 60 * 60 * 24 * 365) // every 365 days
     @Override
     public void deleteExpiredTokens() {
         Instant now = Instant.now();
