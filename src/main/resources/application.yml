@@ -39,4 +39,12 @@ spring:
 
 
 
-
+zeptomail:
+  base-url: https://api.zeptomail.com/v1.1
+  token: ${ZEPTOMAIL_TOKEN}
+  from:
+    address: noreply@project-x-house.space
+    name: Projectx
+  # optional defaults
+  #  reply-to: support@project-x-house.space
+  include-text: true
