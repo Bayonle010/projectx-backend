@@ -20,6 +20,17 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USER_NAME}
+    password: ${MAIL_PASSWORD}
+    transport: smtp #api | smtp
+    properties:
+      mail:
+        smtp:
+          from: ${MAIL_FROM}
+
 
   docker:
     compose:
