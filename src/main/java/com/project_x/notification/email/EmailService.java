@@ -12,9 +12,11 @@ import org.thymeleaf.context.Context;
 import java.util.Map;
 
 public class EmailService {
-    private final Logger log = LoggerFactory.getLogger(EmailService.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(EmailService.class.getName());
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final MessageTemplateFactory messageTemplateFactory;
+    private final MailTransport mailTransport;
 
     @Value("${spring.mail.properties.mail.smtp.from}")
     private String from;
@@ -25,9 +27,11 @@ public class EmailService {
     @Value("${spring.mail.from.default:noreply@project-x-house.space}")
     private String defaultFrom;
 
-    public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine) {
+    public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine, MessageTemplateFactory messageTemplateFactory, MailTransport mailTransport) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
+        this.messageTemplateFactory = messageTemplateFactory;
+        this.mailTransport = mailTransport;
     }
 
     public void sendEmailWithParamMap(SendEmail sendEmail) {
@@ -35,10 +39,8 @@ public class EmailService {
             // Render body (unchanged)
             String html;
             if (sendEmail.getMessageType().equals(MessageType.Template)) {
-                Map<String, Object> paraMap = MessageTemplateFactory.getInstance()
-                        .resolveParamsToMap(sendEmail.getParams());
-                Context context = MessageTemplateFactory.getInstance()
-                        .generateContextOutOfMap(paraMap);
+                Map<String, Object> paraMap = messageTemplateFactory.resolveParamsToMap(sendEmail.getParams());
+                Context context = messageTemplateFactory.generateContextOutOfMap(paraMap);
                 html = templateEngine.process(sendEmail.getMessageContentOrTemplateName(), context);
             } else {
                 html = sendEmail.getMessageContentOrTemplateName();
@@ -54,8 +56,8 @@ public class EmailService {
 
             // Hand off to transport (API on Render free; SMTP elsewhere)
             mailTransport.send(sendEmail, html);
-
             logger.info("Email queued/sent to: {}", sendEmail.getRecipientsEmails());
+
         } catch (Exception e) {
             logger.error("Failed to send email to: {}", sendEmail.getRecipientsEmails(), e);
             throw new RuntimeException(e);
