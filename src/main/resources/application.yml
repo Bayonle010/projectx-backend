@@ -30,6 +30,7 @@ spring:
       mail:
         smtp:
           from: ${MAIL_FROM}
+          display-name: {MAIL_DISPLAY_NAME}
 
 
   docker:
