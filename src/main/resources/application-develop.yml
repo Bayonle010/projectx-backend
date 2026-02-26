@@ -9,8 +9,6 @@ spring:
     compose:
       enabled: false
 
-  config:
-    import: optional:file:.env.develop[.properties]
 
   datasource:
     url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
