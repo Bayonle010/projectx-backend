@@ -57,7 +57,7 @@ public class OtpServiceImpl implements OtpService {
 
             messagingHandler
                     .sendEmailNotificationToQueue(List.of(formattedOtpMedium), new ArrayList<>(), new ArrayList<>(),
-                            MessageType.Text, emailTemplate, emailSubject, "noreply@siryoungtech.com", params, true);
+                            MessageType.Text, "otp: " + numericOTP, emailSubject, "noreply@siryoungtech.com", params, true);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
