@@ -107,6 +107,10 @@ public class OtpServiceImpl implements OtpService {
         return OtpValidationResponse.success(otp);
     }
 
+    @Override
+    public void deleteOtp(Otp otp) {
+        otpRepository.delete(otp);
+    }
 
 
     private boolean isOtpExpired(Otp otpEntity) {
