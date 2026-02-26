@@ -5,9 +5,6 @@ spring:
   application:
     name : projectx
 
-  profiles:
-    active: develop
-
   docker:
     compose:
       enabled: false
