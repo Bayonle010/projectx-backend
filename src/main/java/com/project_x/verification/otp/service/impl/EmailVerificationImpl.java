@@ -10,7 +10,9 @@ import com.project_x.verification.otp.service.EmailVerification;
 import com.project_x.verification.otp.service.OtpService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
+@Service
 public class EmailVerificationImpl implements EmailVerification {
     private final UserService userService;
     private final OtpService otpService;

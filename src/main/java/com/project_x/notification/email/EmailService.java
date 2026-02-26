@@ -6,11 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.Map;
 
+@Service
 public class EmailService {
     private final Logger logger = LoggerFactory.getLogger(EmailService.class.getName());
     private final JavaMailSender mailSender;

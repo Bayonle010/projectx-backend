@@ -1,6 +1,7 @@
 package com.project_x.notification.email;
 
 import com.project_x.notification.model.Param;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.thymeleaf.context.Context;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service
 public class MessageTemplateFactory {
 
     /**

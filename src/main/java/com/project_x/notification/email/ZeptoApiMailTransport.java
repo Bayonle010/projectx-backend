@@ -3,11 +3,15 @@ package com.project_x.notification.email;
 import com.project_x.notification.model.SendEmail;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
+@Component
+@ConditionalOnProperty(name = "mail.transport", havingValue = "api", matchIfMissing = true)
 public class ZeptoApiMailTransport implements MailTransport{
 
     private final RestClient zeptoMailRestClient;
