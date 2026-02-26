@@ -12,6 +12,7 @@ import com.project_x.verification.otp.entity.Otp;
 import com.project_x.verification.otp.enums.OtpEvent;
 import com.project_x.verification.otp.service.EmailVerification;
 import com.project_x.verification.otp.service.OtpService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,7 @@ public class EmailVerificationImpl implements EmailVerification {
     }
 
 
+    @Transactional
     @Override
     public ResponseEntity<ApiResponse> handleVerifySignUpOtp(Otp otp) {
         User user = userService.findUserByEmail(otp.getOtpMedium());
