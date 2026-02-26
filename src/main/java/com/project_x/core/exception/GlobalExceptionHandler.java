@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleIllegalArgumentException(IllegalArgumentException e){
         log.error("Illegal argument exception error {} ", e.getMessage());
         ApiResponse errorResponse = ResponseUtil.error(
-                HttpStatus.BAD_REQUEST.value(),"Illegal Argument", e.getMessage(), null
+                HttpStatus.BAD_REQUEST.value(), e.getMessage(), "Illegal Argument", null
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
         log.error("An unexpected error occurred {}", e.getMessage());
 
         ApiResponse errorResponse = ResponseUtil.error(
-                HttpStatus.UNAUTHORIZED.value(), "Invalid Credential", e.getMessage(), null);
+                HttpStatus.UNAUTHORIZED.value(), e.getMessage(),"Invalid Credential",  null);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
         log.error("Network connectivity issue: {}", e.getMessage());
 
         ApiResponse errorResponse = ResponseUtil.error(
-                HttpStatus.SERVICE_UNAVAILABLE.value(), "InternetConnection Error.", e.getMessage(), null
+                HttpStatus.SERVICE_UNAVAILABLE.value(), e.getMessage(),"InternetConnection Error.", null
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.SERVICE_UNAVAILABLE);
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
         log.error("Resource not found {}", ex.getMessage());
 
         ApiResponse errorResponse = ResponseUtil.error(
-                HttpStatus.NOT_FOUND.value(), "resource not found", ex.getMessage(),null);
+                HttpStatus.NOT_FOUND.value(),  ex.getMessage(), "resource not found",null);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
