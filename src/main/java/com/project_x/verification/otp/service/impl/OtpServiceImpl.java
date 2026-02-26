@@ -8,6 +8,7 @@ import com.project_x.notification.model.Param;
 import com.project_x.notification.service.MessagingHandler;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
+import com.project_x.user.service.UserService;
 import com.project_x.verification.otp.enums.OtpEvent;
 import com.project_x.verification.otp.service.OtpService;
 import org.slf4j.Logger;
@@ -28,28 +29,31 @@ public class OtpServiceImpl implements OtpService {
     private static final Logger logger = LoggerFactory.getLogger(OtpService.class)
 
     private final MessagingHandler messagingHandler;
+    private final UserService userService;
 
-    public OtpServiceImpl(MessagingHandler messagingHandler) {
+    public OtpServiceImpl(MessagingHandler messagingHandler, UserService userService) {
         this.messagingHandler = messagingHandler;
+        this.userService = userService;
     }
 
     @Override
     public boolean handleGenerateOtp(String otpMedium, OtpEvent otpEvent, long expirationTimeInSeconds, String emailSubject, UserType userType, String emailTemplate) {
         String numericOTP = NumberUtil.generateNumericOTP();
         String formattedOtpMedium = otpMedium.toLowerCase().trim();
-        User user = userRepository.findByEmail(formattedOtpMedium).orElse(User.builder().firstname("No one").build());
-
+        User user = userService.findUserByEmail(formattedOtpMedium);
 
 
         try {
+
+//            TODO: Use template
             List<Param> params = new ArrayList<>();
-            params.add(Param.builder().name("otp").value(numericOTP).build());
-            params.add(Param.builder().name("customer_name").value(user.getFirstname()).build());
-            params.add(Param.builder().name("year").value(String.valueOf(LocalDate.now().getYear())).build());
+//            params.add(Param.builder().name("otp").value(numericOTP).build());
+//            params.add(Param.builder().name("customer_name").value(user.getFirstname()).build());
+//            params.add(Param.builder().name("year").value(String.valueOf(LocalDate.now().getYear())).build());
 
             messagingHandler
                     .sendEmailNotificationToQueue(List.of(formattedOtpMedium), new ArrayList<>(), new ArrayList<>(),
-                            MessageType.Template, emailTemplate, emailSubject, "noreply@bayfiapp.com", params, true);
+                            MessageType.Text, emailTemplate, emailSubject, "noreply@bayfiapp.com", params, true);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
