@@ -10,11 +10,13 @@ import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
 import com.project_x.user.service.UserService;
 import com.project_x.verification.otp.OtpRepository;
+import com.project_x.verification.otp.dto.response.OtpValidationResponse;
 import com.project_x.verification.otp.entity.Otp;
 import com.project_x.verification.otp.enums.OtpEvent;
 import com.project_x.verification.otp.service.OtpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -77,4 +79,45 @@ public class OtpServiceImpl implements OtpService {
         return  true;
 
     }
+
+    @Override
+    public OtpValidationResponse validateOtp(String otpToken, String otpMedium, OtpEvent expectedEvent) {
+        Otp otp = otpRepository.findByToken(otpToken);
+        if(ObjectUtils.isEmpty(otp)){
+            return OtpValidationResponse.failure(HttpStatus.NOT_FOUND, "Invalid OTP", "Operation failed");
+        }
+
+        if (!otp.getOtpEvent().equals(expectedEvent)) {
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "Invalid OTP", "Operation failed");
+        }
+
+        if(!otp.getOtpMedium().equals(otpMedium)){
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP from invalid Otp medium (user)", "Operation failed");
+        }
+
+        if(isOtpExpired(otp)){
+            otpRepository.delete(otp);
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP expired", "Expired OTP");
+        }
+
+        if(isOtpInvalid(otp, otpToken)){
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP Incorrect", "Invalid OTP");
+        }
+
+        return OtpValidationResponse.success(otp);
+    }
+
+
+
+    private boolean isOtpExpired(Otp otpEntity) {
+        return otpEntity.isExpired() || Instant.now().isAfter(otpEntity.getExpiryTime());
+    }
+
+
+    private boolean isOtpInvalid(Otp otpEntity, String otp) {
+        return !otpEntity.getToken().equals(otp);
+    }
+
+
+
 }
