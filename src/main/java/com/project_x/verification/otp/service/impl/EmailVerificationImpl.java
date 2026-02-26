@@ -5,6 +5,9 @@ import com.project_x.core.response.ResponseUtil;
 import com.project_x.user.enums.UserType;
 import com.project_x.user.service.UserService;
 import com.project_x.verification.otp.dto.request.SignUpOtpRequest;
+import com.project_x.verification.otp.dto.request.VerifyOtpEventRequest;
+import com.project_x.verification.otp.dto.request.VerifyOtpRequest;
+import com.project_x.verification.otp.entity.Otp;
 import com.project_x.verification.otp.enums.OtpEvent;
 import com.project_x.verification.otp.service.EmailVerification;
 import com.project_x.verification.otp.service.OtpService;
@@ -38,5 +41,27 @@ public class EmailVerificationImpl implements EmailVerification {
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(ResponseUtil.success(0, "Success", String.format("OTP sent to %s ", formattedEmail), "",null));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> verifyOtp(VerifyOtpRequest verifyOtpRequest) {
+        VerifyOtpEventRequest request = VerifyOtpEventRequest.builder()
+                .otp(verifyOtpRequest.otp())
+                .otpMedium(verifyOtpRequest.otpMedium())
+                .otpEvent(OtpEvent.SIGN_UP)
+                .build();
+
+        var result =  otpService.validateOtp(verifyOtpRequest.otp(), verifyOtpRequest.otpMedium(), OtpEvent.SIGN_UP);
+
+        if (!result.isValid()) {
+            return ResponseEntity
+                    .status(result.httpStatus())
+                    .body(ResponseUtil.error(99, result.getErrorMessage(), result.getDetails(), null));
+        }
+
+        Otp otp = result.otp();
+        otpService.deleteOtp(otp);
+
+        return handleVerifySignUpOtp(otp);
     }
 }
