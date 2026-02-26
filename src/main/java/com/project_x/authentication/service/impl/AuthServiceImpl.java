@@ -18,6 +18,8 @@ import com.project_x.role.service.RoleService;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
 import com.project_x.user.repository.UserRepository;
+import com.project_x.verification.otp.dto.request.SignUpOtpRequest;
+import com.project_x.verification.otp.service.EmailVerification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -43,14 +45,16 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final EmailVerification emailVerification;
 
-    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, AuthenticationManager authenticationManager, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, TokenService tokenService) {
+    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, AuthenticationManager authenticationManager, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, TokenService tokenService, EmailVerification emailVerification) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
+        this.emailVerification = emailVerification;
     }
 
     @Override
@@ -98,9 +102,11 @@ public class AuthServiceImpl implements AuthService {
         UserResponse response = UserResponseBuilder.toDto(savedUser);
 
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                ResponseUtil.success(0, "Registration successful", "user registered successfully", response, "" )
-        );
+        SignUpOtpRequest signUpOtpRequest = SignUpOtpRequest.builder()
+                .email(newUser.getEmail())
+                .build();
+
+        return emailVerification.generateSignUpOtp(signUpOtpRequest);
     }
 
     @Override
