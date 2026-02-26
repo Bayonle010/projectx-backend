@@ -2,6 +2,7 @@ package com.project_x.verification.otp.service.impl;
 
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.core.util.NumberUtil;
 import com.project_x.notification.model.MessageType;
 import com.project_x.notification.model.Param;
 import com.project_x.notification.service.MessagingHandler;
@@ -34,7 +35,7 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     public boolean handleGenerateOtp(String otpMedium, OtpEvent otpEvent, long expirationTimeInSeconds, String emailSubject, UserType userType, String emailTemplate) {
-        String numericOTP = generateNumericOTP();
+        String numericOTP = NumberUtil.generateNumericOTP();
         String formattedOtpMedium = otpMedium.toLowerCase().trim();
         User user = userRepository.findByEmail(formattedOtpMedium).orElse(User.builder().firstname("No one").build());
 
@@ -66,7 +67,7 @@ public class OtpServiceImpl implements OtpService {
         otp.setExpiryTime(Instant.now().plus(Duration.ofSeconds(expirationTimeInSeconds)));
 
         otpRepository.save(otp);
-        
+
         return  true;
 
     }
