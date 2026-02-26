@@ -9,31 +9,33 @@ import com.project_x.notification.service.MessagingHandler;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
 import com.project_x.user.service.UserService;
+import com.project_x.verification.otp.OtpRepository;
+import com.project_x.verification.otp.entity.Otp;
 import com.project_x.verification.otp.enums.OtpEvent;
 import com.project_x.verification.otp.service.OtpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class OtpServiceImpl implements OtpService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OtpService.class)
+    private static final Logger logger = LoggerFactory.getLogger(OtpService.class);
 
     private final MessagingHandler messagingHandler;
     private final UserService userService;
+    private final OtpRepository otpRepository;
 
-    public OtpServiceImpl(MessagingHandler messagingHandler, UserService userService) {
+    public OtpServiceImpl(MessagingHandler messagingHandler, UserService userService, OtpRepository otpRepository) {
         this.messagingHandler = messagingHandler;
         this.userService = userService;
+        this.otpRepository = otpRepository;
     }
 
     @Override
@@ -53,7 +55,7 @@ public class OtpServiceImpl implements OtpService {
 
             messagingHandler
                     .sendEmailNotificationToQueue(List.of(formattedOtpMedium), new ArrayList<>(), new ArrayList<>(),
-                            MessageType.Text, emailTemplate, emailSubject, "noreply@bayfiapp.com", params, true);
+                            MessageType.Text, emailTemplate, emailSubject, "noreply@siryoungtech.com", params, true);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
