@@ -138,12 +138,11 @@ public class AuthServiceImpl implements AuthService {
 
 
         // 3) Business rules
-        //         TODO : send email to the user
-//        if (!user.isEmailVerified()) {
-
-//            return ResponseEntity.status(HttpStatus.OK)
-//                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", "", null));
-//        }
+        if (!user.isEmailVerified()) {
+            emailVerification.generateSignUpOtp(SignUpOtpRequest.builder().email(email).build());
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", "", null));
+        }
 
         // 4) Generate tokens & persist refresh
         final String accessToken = jwtUtil.generateAccessTokenForUser(user);
