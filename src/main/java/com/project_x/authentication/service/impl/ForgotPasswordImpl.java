@@ -1,6 +1,7 @@
 package com.project_x.authentication.service.impl;
 
 import com.project_x.authentication.dto.request.ForgotPasswordOtpRequest;
+import com.project_x.authentication.dto.request.VerifyPasswordOtpRequest;
 import com.project_x.authentication.service.ForgotPasswordService;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
@@ -37,5 +38,18 @@ public class ForgotPasswordImpl implements ForgotPasswordService {
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(ResponseUtil.success(0, "Success", String.format("OTP sent to %s ", formattedEmail), "", null));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> handlePasswordOtpVerification(VerifyPasswordOtpRequest request) {
+        var result = otpService.validateOtp(request.otp(), request.email(), OtpEvent.FORGOT_PASSWORD);
+
+        if (!result.isValid()) {
+            return ResponseEntity
+                    .status(result.httpStatus())
+                    .body(ResponseUtil.error(99, result.errorMessage(), result.details(), null));
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseUtil.success(0, "verification successful", "otp verified", "", ""));
     }
 }
