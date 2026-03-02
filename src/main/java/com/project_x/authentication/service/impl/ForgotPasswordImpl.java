@@ -29,7 +29,7 @@ public class ForgotPasswordImpl implements ForgotPasswordService {
 
         boolean generateOtp = otpService.handleGenerateOtp(
                 formattedEmail, OtpEvent.FORGOT_PASSWORD, 300L, "PASSWORD RESET OTP",
-                UserType.USER, "forgot password : otp"
+                UserType.USER, "forgot password otp :"
         );
 
         if (!generateOtp) {
