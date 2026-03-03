@@ -52,11 +52,6 @@ public class EmailVerificationImpl implements EmailVerification {
 
     @Override
     public ResponseEntity<ApiResponse> verifyOtp(VerifyOtpRequest verifyOtpRequest) {
-        VerifyOtpEventRequest request = VerifyOtpEventRequest.builder()
-                .otp(verifyOtpRequest.otp())
-                .otpMedium(verifyOtpRequest.otpMedium())
-                .otpEvent(OtpEvent.SIGN_UP)
-                .build();
 
         var result =  otpService.validateOtp(verifyOtpRequest.otp(), verifyOtpRequest.otpMedium(), OtpEvent.SIGN_UP);
 

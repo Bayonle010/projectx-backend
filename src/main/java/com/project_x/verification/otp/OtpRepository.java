@@ -5,9 +5,10 @@ import com.project_x.verification.otp.entity.Otp;
 import com.project_x.verification.otp.enums.OtpEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface OtpRepository extends JpaRepository<Otp, UUID> {
     Otp findByOtpMediumAndOtpEventAndUserType(String otp, OtpEvent event, UserType userType);
-    Otp findByToken(String token);
+    Optional<Otp> findByToken(String token);
 }

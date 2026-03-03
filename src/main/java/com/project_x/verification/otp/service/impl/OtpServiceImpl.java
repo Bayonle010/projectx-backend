@@ -1,5 +1,6 @@
 package com.project_x.verification.otp.service.impl;
 
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.util.NumberUtil;
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OtpServiceImpl implements OtpService {
@@ -63,7 +65,7 @@ public class OtpServiceImpl implements OtpService {
         }
 
 
-        Otp otp = otpRepository.findByOtpMediumAndOtpEventAndUserType(otpMedium, otpEvent, userType);
+        Otp otp = otpRepository.findByOtpMediumAndOtpEventAndUserType(formattedOtpMedium, otpEvent, userType);
         if (ObjectUtils.isEmpty(otp)) {
             otp = new Otp();
             otp.setOtpEvent(otpEvent);
@@ -82,22 +84,28 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     public OtpValidationResponse validateOtp(String otpToken, String otpMedium, OtpEvent expectedEvent) {
-        Otp otp = otpRepository.findByToken(otpToken);
-        if(ObjectUtils.isEmpty(otp)){
-            return OtpValidationResponse.failure(HttpStatus.NOT_FOUND, "Invalid OTP", "Operation failed");
+        Optional<Otp> optionalOtp = otpRepository.findByToken(otpToken);
+
+
+        if (optionalOtp.isEmpty()) {
+            return OtpValidationResponse.failure(HttpStatus.NOT_FOUND, "Invalid OTP", "Operation failed: OTP not found");
         }
 
+        Otp otp = optionalOtp.get();
+        logger.info("otp is {}", otp.getToken());
+
+
         if (!otp.getOtpEvent().equals(expectedEvent)) {
-            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "Invalid OTP", "Operation failed");
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "Invalid OTP", "Operation failed: Wrong Expected Event");
         }
 
         if(!otp.getOtpMedium().equals(otpMedium)){
-            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP from invalid Otp medium (user)", "Operation failed");
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP from invalid Otp medium", "Operation failed: Otp from wrong user ");
         }
 
         if(isOtpExpired(otp)){
             otpRepository.delete(otp);
-            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP expired", "Expired OTP");
+            return OtpValidationResponse.failure(HttpStatus.BAD_REQUEST, "OTP expired", "Operation failed: Expired OTP");
         }
 
         if(isOtpInvalid(otp, otpToken)){

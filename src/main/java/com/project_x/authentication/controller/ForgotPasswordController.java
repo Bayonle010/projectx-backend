@@ -28,7 +28,7 @@ public class ForgotPasswordController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse> verifyForgotPasswordOtp(VerifyPasswordOtpRequest request){
+    public ResponseEntity<ApiResponse> verifyForgotPasswordOtp(@RequestBody @Valid VerifyPasswordOtpRequest request){
         return forgotPasswordService.handlePasswordOtpVerification(request);
     }
 }
