@@ -38,6 +38,11 @@ spring:
       enabled: false
 
 
+  output:
+    ansi:
+      enabled: always
+
+
 zeptomail:
   base-url: https://api.zeptomail.com/v1.1
   token: ${ZEPTOMAIL_TOKEN}
