@@ -1,6 +1,7 @@
 package com.project_x.authentication.controller;
 
 import com.project_x.authentication.dto.request.ForgotPasswordOtpRequest;
+import com.project_x.authentication.dto.request.ResetPasswordRequest;
 import com.project_x.authentication.dto.request.VerifyPasswordOtpRequest;
 import com.project_x.authentication.service.ForgotPasswordService;
 import com.project_x.core.response.ApiResponse;
@@ -30,5 +31,10 @@ public class ForgotPasswordController {
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse> verifyForgotPasswordOtp(@RequestBody @Valid VerifyPasswordOtpRequest request){
         return forgotPasswordService.handlePasswordOtpVerification(request);
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity<ApiResponse> resetPassword(@RequestBody @Valid ResetPasswordRequest request){
+        return forgotPasswordService.resetPassword(request);
     }
 }
