@@ -6,7 +6,7 @@ public record VerifyOtpRequest(
         @NotBlank(message = "otp cannot be blank")
         String otp,
 
-        @NotBlank(message = "otp medium cannot be blank")
+        @NotBlank(message = "email cannot be blank")
          String email
 ) {
 }
