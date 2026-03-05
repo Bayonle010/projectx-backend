@@ -29,7 +29,7 @@ public class ForgotPasswordImpl implements ForgotPasswordService {
 
 
         boolean generateOtp = otpService.handleGenerateOtp(
-                formattedEmail, OtpEvent.FORGOT_PASSWORD, 60L, "PASSWORD RESET",
+                formattedEmail, OtpEvent.FORGOT_PASSWORD, 180L, "PASSWORD RESET",
                 UserType.USER, "forgot password otp :"
         );
 
@@ -43,7 +43,7 @@ public class ForgotPasswordImpl implements ForgotPasswordService {
     @Override
     public ResponseEntity<ApiResponse> handlePasswordOtpVerification(VerifyPasswordOtpRequest request) {
 
-        var result = otpService.validateOtp("", "", OtpEvent.FORGOT_PASSWORD);
+        var result = otpService.validateOtp(request.otp(), request.email(), OtpEvent.FORGOT_PASSWORD);
 
         if (!result.isValid()) {
             return ResponseEntity
