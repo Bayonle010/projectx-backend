@@ -1,4 +1,4 @@
-package com.project_x.authentication.dto.request;
+package com.project_x.authentication.customauth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

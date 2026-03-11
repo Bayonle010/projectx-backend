@@ -1,9 +1,9 @@
-package com.project_x.authentication.token.service.Impl;
+package com.project_x.authentication.customauth.token.service.Impl;
 
-import com.project_x.authentication.token.Token;
-import com.project_x.authentication.token.TokenRepository;
-import com.project_x.authentication.token.TokenType;
-import com.project_x.authentication.token.service.TokenService;
+import com.project_x.authentication.customauth.token.Token;
+import com.project_x.authentication.customauth.token.TokenRepository;
+import com.project_x.authentication.customauth.token.TokenType;
+import com.project_x.authentication.customauth.token.service.TokenService;
 import com.project_x.core.exception.InvalidCredentialException;
 import com.project_x.core.security.JwtUtil;
 import com.project_x.user.entity.User;

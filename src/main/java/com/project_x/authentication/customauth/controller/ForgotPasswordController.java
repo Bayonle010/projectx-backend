@@ -1,11 +1,10 @@
-package com.project_x.authentication.controller;
+package com.project_x.authentication.customauth.controller;
 
-import com.project_x.authentication.dto.request.ForgotPasswordOtpRequest;
-import com.project_x.authentication.dto.request.ResetPasswordRequest;
-import com.project_x.authentication.dto.request.VerifyPasswordOtpRequest;
-import com.project_x.authentication.service.ForgotPasswordService;
+import com.project_x.authentication.customauth.dto.request.ForgotPasswordOtpRequest;
+import com.project_x.authentication.customauth.dto.request.ResetPasswordRequest;
+import com.project_x.authentication.customauth.dto.request.VerifyPasswordOtpRequest;
+import com.project_x.authentication.customauth.service.ForgotPasswordService;
 import com.project_x.core.response.ApiResponse;
-import com.project_x.verification.otp.dto.request.VerifyOtpRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,6 +1,6 @@
-package com.project_x.authentication.builder;
+package com.project_x.authentication.customauth.builder;
 
-import com.project_x.authentication.dto.response.UserResponse;
+import com.project_x.authentication.customauth.dto.response.UserResponse;
 import com.project_x.role.Role;
 import com.project_x.user.entity.User;
 

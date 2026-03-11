@@ -1,4 +1,4 @@
-package com.project_x.authentication.dto.response;
+package com.project_x.authentication.customauth.dto.response;
 
 import lombok.Builder;
 

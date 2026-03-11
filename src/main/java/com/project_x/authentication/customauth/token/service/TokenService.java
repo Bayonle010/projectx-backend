@@ -1,4 +1,4 @@
-package com.project_x.authentication.token.service;
+package com.project_x.authentication.customauth.token.service;
 
 import com.project_x.user.entity.User;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,9 @@
-package com.project_x.authentication.controller;
+package com.project_x.authentication.customauth.controller;
 
-import com.project_x.authentication.dto.request.LoginRequest;
-import com.project_x.authentication.dto.request.RefreshTokenRequest;
-import com.project_x.authentication.dto.request.RegistrationRequest;
-import com.project_x.authentication.service.AuthService;
+import com.project_x.authentication.customauth.dto.request.LoginRequest;
+import com.project_x.authentication.customauth.dto.request.RefreshTokenRequest;
+import com.project_x.authentication.customauth.dto.request.RegistrationRequest;
+import com.project_x.authentication.customauth.service.AuthService;
 import com.project_x.core.response.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

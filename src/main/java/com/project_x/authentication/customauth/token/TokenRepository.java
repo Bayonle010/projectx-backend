@@ -1,4 +1,4 @@
-package com.project_x.authentication.token;
+package com.project_x.authentication.customauth.token;
 
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;

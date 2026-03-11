@@ -1,12 +1,11 @@
-package com.project_x.authentication.service.impl;
+package com.project_x.authentication.customauth.service.impl;
 
-import com.project_x.authentication.dto.request.ForgotPasswordOtpRequest;
-import com.project_x.authentication.dto.request.ResetPasswordRequest;
-import com.project_x.authentication.dto.request.VerifyPasswordOtpRequest;
-import com.project_x.authentication.service.ForgotPasswordService;
+import com.project_x.authentication.customauth.dto.request.ForgotPasswordOtpRequest;
+import com.project_x.authentication.customauth.dto.request.ResetPasswordRequest;
+import com.project_x.authentication.customauth.dto.request.VerifyPasswordOtpRequest;
+import com.project_x.authentication.customauth.service.ForgotPasswordService;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
-import com.project_x.notification.model.MessageType;
 import com.project_x.notification.service.MessagingHandler;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
@@ -21,9 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class ForgotPasswordImpl implements ForgotPasswordService {

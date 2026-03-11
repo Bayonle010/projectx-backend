@@ -1,4 +1,4 @@
-package com.project_x.authentication.token;
+package com.project_x.authentication.customauth.token;
 
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;
