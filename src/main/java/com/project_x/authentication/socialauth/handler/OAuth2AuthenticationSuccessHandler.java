@@ -6,14 +6,14 @@ import com.project_x.user.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 @Component
@@ -21,10 +21,14 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final String appUrl;
 
-    public OAuth2AuthenticationSuccessHandler(UserRepository userRepository, JwtUtil jwtUtil) {
+    public OAuth2AuthenticationSuccessHandler(UserRepository userRepository,
+                                              JwtUtil jwtUtil,
+                                              @Value("${app.frontend.base-url}") String appUrl) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
+        this.appUrl = appUrl;
     }
 
     @Override
@@ -45,9 +49,13 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         String accessToken = jwtUtil.generateAccessTokenForUser(user);
 
-        // Replace with the real front end url
-        String redirectUrl = "/auth/social-success?token="
-                + URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(appUrl)
+                .path("/auth/social-success")
+                .queryParam("token", accessToken)
+                .build()
+                .toUriString();
 
         response.sendRedirect(redirectUrl);
     }
