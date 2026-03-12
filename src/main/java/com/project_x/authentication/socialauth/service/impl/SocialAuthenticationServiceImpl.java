@@ -10,11 +10,13 @@ import com.project_x.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
 
+@Service
 public class SocialAuthenticationServiceImpl implements SocialAuthenticationService {
     private static final Logger log = LoggerFactory.getLogger(SocialAuthenticationServiceImpl.class);
 
