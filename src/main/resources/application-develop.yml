@@ -56,6 +56,10 @@ spring:
       enabled: always
 
 
+app:
+  base-url: ${APP_BASE_URL}
+
+
 zeptomail:
   base-url: https://api.zeptomail.com/v1.1
   token: ${ZEPTOMAIL_TOKEN}

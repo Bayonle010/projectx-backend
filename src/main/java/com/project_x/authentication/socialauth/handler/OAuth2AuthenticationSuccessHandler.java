@@ -6,7 +6,6 @@ import com.project_x.user.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -47,7 +46,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         String accessToken = jwtUtil.generateAccessTokenForUser(user);
 
         // Replace with the real front end url
-        String redirectUrl = "baseUri/auth/social-success?token="
+        String redirectUrl = "/auth/social-success?token="
                 + URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
 
         response.sendRedirect(redirectUrl);
