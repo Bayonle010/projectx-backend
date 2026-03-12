@@ -44,12 +44,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         User user = userRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT))
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));
 
-        Authentication jwtAuthentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                user.getAuthorities()
-        );
-
         String accessToken = jwtUtil.generateAccessTokenForUser(user);
 
         // Replace with the real front end url
