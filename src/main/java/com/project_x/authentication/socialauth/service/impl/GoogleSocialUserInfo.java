@@ -5,7 +5,6 @@ import com.project_x.authentication.socialauth.service.SocialUserInfo;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-@Service
 public class GoogleSocialUserInfo implements SocialUserInfo {
 
     private final OAuth2User oAuth2User;
