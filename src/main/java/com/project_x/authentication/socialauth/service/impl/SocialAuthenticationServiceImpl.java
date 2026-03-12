@@ -1,7 +1,7 @@
 package com.project_x.authentication.socialauth.service.impl;
 
 import com.project_x.authentication.socialauth.entity.Oauth2AuthenticationProvider;
-import com.project_x.authentication.socialauth.reposiotory.Oauth2ProviderRepository;
+import com.project_x.authentication.socialauth.repository.Oauth2ProviderRepository;
 import com.project_x.authentication.socialauth.service.SocialAuthenticationService;
 import com.project_x.authentication.socialauth.service.SocialUserInfo;
 import com.project_x.role.RoleRepository;

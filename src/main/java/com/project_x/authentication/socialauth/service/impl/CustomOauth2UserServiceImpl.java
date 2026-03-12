@@ -31,7 +31,7 @@ public class CustomOauth2UserServiceImpl implements OAuth2UserService<OAuth2User
 
         User user = socialAuthenticationService.handleSocialLogin(socialUserInfo);
 
-        // Return an authenticated principal containing your app authorities
+        // Return an authenticated principal containing app authorities
         return new DefaultOAuth2User(
                 user.getAuthorities(),
                 oauth2User.getAttributes(),

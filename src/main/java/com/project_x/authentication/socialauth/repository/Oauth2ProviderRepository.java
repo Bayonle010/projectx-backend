@@ -1,4 +1,4 @@
-package com.project_x.authentication.socialauth.reposiotory;
+package com.project_x.authentication.socialauth.repository;
 
 import com.project_x.authentication.socialauth.entity.Oauth2AuthenticationProvider;
 import com.project_x.authentication.socialauth.enums.Oauth2ProviderType;
