@@ -6,6 +6,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.project_x.authentication.socialauth.handler.OAuth2AuthenticationSuccessHandler;
+import com.project_x.authentication.socialauth.service.impl.CustomOauth2UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +33,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
     private final RSAKeyProperties keys;
     private final CustomAuthEntryPoint customAuthEntryPoint;
+    private final CustomOauth2UserServiceImpl customOauth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     private static final String[] WHITE_LIST_URL = {
             "/swagger-ui/**",
@@ -60,6 +64,12 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint(customAuthEntryPoint))
+                .oauth2Login(oauth2-> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOauth2UserService)
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
