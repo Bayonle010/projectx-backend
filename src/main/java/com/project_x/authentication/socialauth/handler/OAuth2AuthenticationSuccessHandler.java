@@ -25,7 +25,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     public OAuth2AuthenticationSuccessHandler(UserRepository userRepository,
                                               JwtUtil jwtUtil,
-                                              @Value("${app.frontend.base-url}") String appUrl) {
+                                              @Value("${app.base-url}") String appUrl) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.appUrl = appUrl;
