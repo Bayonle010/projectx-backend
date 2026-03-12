@@ -3,10 +3,15 @@ package com.project_x.authentication.socialauth.entity;
 import com.project_x.authentication.socialauth.enums.Oauth2ProviderType;
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.UUID;
 
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(
         name = "oauth2_authentication_providers",
