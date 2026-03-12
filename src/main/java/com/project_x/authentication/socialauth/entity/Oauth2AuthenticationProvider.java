@@ -1,5 +1,6 @@
 package com.project_x.authentication.socialauth.entity;
 
+import com.project_x.authentication.socialauth.enums.Oauth2ProviderType;
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;
 
