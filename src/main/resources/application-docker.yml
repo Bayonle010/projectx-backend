@@ -72,3 +72,10 @@ zeptomail:
   #  reply-to: support@project-x-house.space
   include-text: true
 
+
+cloudinary:
+  api:
+    key: ${CLOUDINARY_API_KEY}
+    secret: ${CLOUDINARY_API_SECRET}
+  cloud:
+    name: ${CLOUDINARY_CLOUD_NAME}
