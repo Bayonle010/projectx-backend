@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/files")
 public class Controller {
     private final FileService fileService;
 
