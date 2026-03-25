@@ -74,7 +74,7 @@ public class CloudinaryServiceImpl implements FileService {
                     .resourceType(resourceType)
                     .format(format)
                     .build();
-            
+
 
         } catch (IOException e) {
             log.error("Cloudinary upload failed for folder={}", folderName, e);
