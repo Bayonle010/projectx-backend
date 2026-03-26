@@ -33,7 +33,8 @@ public class CloudinaryServiceImpl implements FileService {
 
     @Override
     public FileUploadResponse uploadVideo(MultipartFile file, String folderName) {
-        return null;
+        FileValidationUtil.validateVideo(file);
+        return upload(file, folderName, "video", false);
     }
 
     @Override

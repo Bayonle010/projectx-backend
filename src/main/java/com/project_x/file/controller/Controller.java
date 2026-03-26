@@ -29,4 +29,15 @@ public class Controller {
                 ResponseUtil.success(0, "Image uploaded successfully", "", response,  null)
         );
     }
+
+    @PostMapping(value = "/videos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse> uploadVideo(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("folder") String folderName
+    ) {
+        FileUploadResponse response = fileService.uploadVideo(file, folderName);
+        return ResponseEntity.ok(
+                ResponseUtil.success(200, "Video uploaded successfully","", response,null)
+        );
+    }
 }
