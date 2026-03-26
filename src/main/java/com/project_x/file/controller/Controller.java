@@ -37,7 +37,19 @@ public class Controller {
     ) {
         FileUploadResponse response = fileService.uploadVideo(file, folderName);
         return ResponseEntity.ok(
-                ResponseUtil.success(200, "Video uploaded successfully","", response,null)
+                ResponseUtil.success(0, "Video uploaded successfully","", response,null)
         );
     }
+
+    @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse> uploadDocument(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("folder") String folderName
+    ) {
+        FileUploadResponse response = fileService.uploadDocument(file, folderName);
+        return ResponseEntity.ok(
+                ResponseUtil.success(0, "Video uploaded successfully","", response,null)
+        );
+    }
+
 }
