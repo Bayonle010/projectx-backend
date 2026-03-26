@@ -3,6 +3,7 @@ package com.project_x.file.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.file.FileValidationUtil;
 import com.project_x.file.dto.FileUploadResponse;
 import com.project_x.file.service.FileService;
@@ -45,7 +46,28 @@ public class CloudinaryServiceImpl implements FileService {
 
     @Override
     public void deleteFileByPublicId(String publicId, String resourceType) {
+        try {
 
+            log.info("Deleting file: publicId={}, resourceType={}", publicId, resourceType);
+
+            Map<?, ?> result = cloudinary.uploader().destroy(
+                    publicId,
+                    ObjectUtils.asMap("resource_type", resourceType)
+            );
+
+            log.info("Cloudinary delete result for publicId={}: {}", publicId, result);
+
+            Object deleteResult = result.get("result");
+
+
+            if (!"ok".equals(deleteResult) && !"not found".equals(deleteResult)) {
+                throw new BadRequestException("Failed to delete file from Cloudinary");
+            }
+
+        } catch (IOException e) {
+            log.error("Failed to delete file from Cloudinary. publicId={}", publicId, e);
+            throw new RuntimeException("Failed to delete file");
+        }
     }
 
 

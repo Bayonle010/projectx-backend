@@ -2,8 +2,10 @@ package com.project_x.file.controller;
 
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.file.dto.FileDeleteRequest;
 import com.project_x.file.dto.FileUploadResponse;
 import com.project_x.file.service.FileService;
+import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +51,14 @@ public class Controller {
         FileUploadResponse response = fileService.uploadDocument(file, folderName);
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "File uploaded successfully","", response,null)
+        );
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse> deleteFile(@Valid @RequestBody FileDeleteRequest request) {
+        fileService.deleteFileByPublicId(request.publicId(), request.resourceType());
+        return ResponseEntity.ok(
+                ResponseUtil.success(200, "File deleted successfully", "", null, null)
         );
     }
 
