@@ -39,7 +39,8 @@ public class CloudinaryServiceImpl implements FileService {
 
     @Override
     public FileUploadResponse uploadDocument(MultipartFile file, String folderName) {
-        return null;
+        FileValidationUtil.validateDocument(file);
+        return upload(file, folderName, "raw", false);
     }
 
     @Override

@@ -48,8 +48,10 @@ public class Controller {
     ) {
         FileUploadResponse response = fileService.uploadDocument(file, folderName);
         return ResponseEntity.ok(
-                ResponseUtil.success(0, "Video uploaded successfully","", response,null)
+                ResponseUtil.success(0, "File uploaded successfully","", response,null)
         );
     }
+
+
 
 }
