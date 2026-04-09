@@ -1,4 +1,4 @@
-package com.project_x.listing.houseowners.entity.amenities;
+package com.project_x.listing.houseowners.entity;
 
 
 import jakarta.persistence.*;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "amenities")
 @Entity
-public class amenities {
+public class Amenities {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
