@@ -25,7 +25,7 @@ public class AmenitiesController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse> createAmenity(@Valid @RequestBody AmenitiesRequest request){
+    public ResponseEntity<ApiResponse> createAmenity(@Valid @RequestBody AmenitiesRequest request) {
         AmenitiesResponse response = amenitiesService.createAmenity(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -51,5 +51,14 @@ public class AmenitiesController {
         );
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteAmenity(@PathVariable UUID id) {
+        amenitiesService.deleteAmenity(id);
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(0, "Amenity deleted successfully", "", null, "")
+
+        );
+    }
 
 }

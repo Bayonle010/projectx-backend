@@ -10,6 +10,8 @@ public interface AmenitiesService {
     AmenitiesResponse createAmenity(AmenitiesRequest request);
     List<AmenitiesResponse> getAllAmenities();
     AmenitiesResponse getAmenityById(UUID id);
+    void deleteAmenity(UUID id);
+
 
 
 }
