@@ -1,5 +1,6 @@
 package com.project_x.listing.houseowners.service.impl;
 
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.listing.houseowners.builder.AmenitiesResponseBuilder;
 import com.project_x.listing.houseowners.dto.request.AmenitiesRequest;
 import com.project_x.listing.houseowners.dto.response.AmenitiesResponse;
@@ -9,6 +10,7 @@ import com.project_x.listing.houseowners.service.AmenitiesService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AmenitiesServiceImpl implements AmenitiesService {
@@ -41,4 +43,14 @@ public class AmenitiesServiceImpl implements AmenitiesService {
                 .toList();
 
     }
+
+    @Override
+    public AmenitiesResponse getAmenityById(UUID id) {
+        Amenities amenity = amenitiesRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Amenity not found with id: " + id));
+
+        return AmenitiesResponseBuilder.toDto(amenity);
+    }
+
+
 }

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/amenities")
@@ -40,5 +41,15 @@ public class AmenitiesController {
                 ResponseUtil.success(0, "Amenities fetched successfully", "", response, "")
         );
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> getAmenityById(@PathVariable UUID id) {
+        AmenitiesResponse response = amenitiesService.getAmenityById(id);
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(0, "Amenity fetched successfully", "", response, "")
+        );
+    }
+
 
 }
