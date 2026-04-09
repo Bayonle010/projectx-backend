@@ -8,6 +8,8 @@ import com.project_x.listing.houseowners.repository.AmenitiesRepository;
 import com.project_x.listing.houseowners.service.AmenitiesService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AmenitiesServiceImpl implements AmenitiesService {
 
@@ -29,5 +31,14 @@ public class AmenitiesServiceImpl implements AmenitiesService {
         Amenities savedAmenity = amenitiesRepository.save(newAmenity);
 
         return AmenitiesResponseBuilder.toDto(savedAmenity);
+    }
+
+    @Override
+    public List<AmenitiesResponse> getAllAmenities() {
+        return amenitiesRepository.findAll()
+                .stream()
+                .map(AmenitiesResponseBuilder::toDto)
+                .toList();
+
     }
 }

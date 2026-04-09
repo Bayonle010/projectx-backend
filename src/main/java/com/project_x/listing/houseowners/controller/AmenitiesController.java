@@ -9,10 +9,9 @@ import com.project_x.listing.houseowners.service.AmenitiesService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/amenities")
@@ -32,4 +31,14 @@ public class AmenitiesController {
                 ResponseUtil.success(0, "Amenity created successfully", "", response, "")
         );
     }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllAmenities() {
+        List<AmenitiesResponse> response = amenitiesService.getAllAmenities();
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(0, "Amenities fetched successfully", "", response, "")
+        );
+    }
+
 }
