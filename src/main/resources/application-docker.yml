@@ -65,6 +65,9 @@ spring:
 
 app:
   base-url: ${APP_BASE_URL}
+  cors:
+    allowed-origins: "*"
+    allow-credentials: false
 
 
 
