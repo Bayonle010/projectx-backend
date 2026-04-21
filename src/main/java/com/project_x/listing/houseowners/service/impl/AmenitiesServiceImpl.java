@@ -5,7 +5,7 @@ import com.project_x.file.service.impl.CloudinaryServiceImpl;
 import com.project_x.listing.houseowners.builder.AmenitiesResponseBuilder;
 import com.project_x.listing.houseowners.dto.request.AmenitiesRequest;
 import com.project_x.listing.houseowners.dto.response.AmenitiesResponse;
-import com.project_x.listing.houseowners.entity.Amenities;
+import com.project_x.listing.houseowners.entity.Amenity;
 import com.project_x.listing.houseowners.event.dto.AmenityDeletedEVent;
 import com.project_x.listing.houseowners.repository.AmenitiesRepository;
 import com.project_x.listing.houseowners.service.AmenitiesService;
@@ -33,13 +33,13 @@ public class AmenitiesServiceImpl implements AmenitiesService {
     @Override
     public AmenitiesResponse createAmenity(AmenitiesRequest request) {
 
-        Amenities newAmenity = Amenities.builder()
+        Amenity newAmenity = Amenity.builder()
                 .name(request.name())
                 .imageUrl(request.imageUrl())
                 .imagePublicId(request.imagePublicId())
                 .build();
 
-        Amenities savedAmenity = amenitiesRepository.save(newAmenity);
+        Amenity savedAmenity = amenitiesRepository.save(newAmenity);
 
         return AmenitiesResponseBuilder.toDto(savedAmenity);
     }
@@ -55,7 +55,7 @@ public class AmenitiesServiceImpl implements AmenitiesService {
 
     @Override
     public AmenitiesResponse getAmenityById(UUID id) {
-        Amenities amenity = amenitiesRepository.findById(id)
+        Amenity amenity = amenitiesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Amenity not found with id: " + id));
 
         return AmenitiesResponseBuilder.toDto(amenity);
@@ -64,7 +64,7 @@ public class AmenitiesServiceImpl implements AmenitiesService {
     @Override
     @Transactional
     public void deleteAmenity(UUID id) {
-        Amenities amenity = amenitiesRepository.findById(id)
+        Amenity amenity = amenitiesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Amenity not found with id: " + id));
 
         // 2. Delete from DB
