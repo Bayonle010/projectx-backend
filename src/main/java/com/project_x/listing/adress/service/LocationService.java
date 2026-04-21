@@ -3,6 +3,8 @@ package com.project_x.listing.adress.service;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.listing.adress.dto.LgaResponse;
 import com.project_x.listing.adress.dto.StateResponse;
+import com.project_x.listing.adress.entity.Lga;
+import com.project_x.listing.adress.entity.State;
 import com.project_x.listing.adress.repository.LgaRepository;
 import com.project_x.listing.adress.repository.StateRepository;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,15 @@ public class LocationService {
                 ))
                 .toList();
     }
+
+    public State findState(UUID stateId){
+        return stateRepository.findById(stateId).orElseThrow(()-> new ResourceNotFoundException("state not found"));
+    }
+
+    public Lga findLga(UUID lgaId){
+        return lgaRepository.findById(lgaId).orElseThrow(()-> new ResourceNotFoundException("Lga not found"));
+    }
+
 
     private void validateStateExists(UUID stateId) {
         stateRepository.findById(stateId)
