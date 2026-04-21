@@ -132,6 +132,9 @@ public class Listing {
     @Column(name = "video_url", nullable = false)
     private String videoUrl;
 
+    @Column(name = "video_public_id", nullable = false)
+    private String videoPublicId;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -143,5 +146,5 @@ public class Listing {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
-    
+
 }
