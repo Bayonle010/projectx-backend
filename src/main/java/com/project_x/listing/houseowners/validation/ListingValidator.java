@@ -7,7 +7,7 @@ import com.project_x.listing.adress.entity.Lga;
 import com.project_x.listing.adress.entity.State;
 import com.project_x.listing.houseowners.dto.request.CreateListingRequest;
 import com.project_x.listing.houseowners.entity.Amenity;
-import com.project_x.listing.houseowners.repository.AmenitiesRepository;
+import com.project_x.listing.houseowners.repository.AmenityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ListingValidator {
 
-    private final AmenitiesRepository amenitiesRepository;
+    private final AmenityRepository amenityRepository;
 
     public void validateForCreate(CreateListingRequest request) {
         validateDescription(request.description());
@@ -38,7 +38,7 @@ public class ListingValidator {
             return new HashSet<>();
         }
 
-        List<Amenity> amenities = amenitiesRepository.findAllByIdIn(amenityIds);
+        List<Amenity> amenities = amenityRepository.findAllByIdIn(amenityIds);
 
         if (amenities.size() != amenityIds.size()) {
             Set<UUID> foundIds = amenities.stream()

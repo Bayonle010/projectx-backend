@@ -7,7 +7,7 @@ import com.project_x.listing.houseowners.dto.request.AmenitiesRequest;
 import com.project_x.listing.houseowners.dto.response.AmenitiesResponse;
 import com.project_x.listing.houseowners.entity.Amenity;
 import com.project_x.listing.houseowners.event.dto.AmenityDeletedEVent;
-import com.project_x.listing.houseowners.repository.AmenitiesRepository;
+import com.project_x.listing.houseowners.repository.AmenityRepository;
 import com.project_x.listing.houseowners.service.AmenitiesService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -20,12 +20,12 @@ import java.util.UUID;
 public class AmenitiesServiceImpl implements AmenitiesService {
 
 
-    private final AmenitiesRepository amenitiesRepository;
+    private final AmenityRepository amenityRepository;
     private final CloudinaryServiceImpl cloudinaryService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public AmenitiesServiceImpl(AmenitiesRepository amenitiesRepository, CloudinaryServiceImpl cloudinaryService, ApplicationEventPublisher applicationEventPublisher) {
-        this.amenitiesRepository = amenitiesRepository;
+    public AmenitiesServiceImpl(AmenityRepository amenityRepository, CloudinaryServiceImpl cloudinaryService, ApplicationEventPublisher applicationEventPublisher) {
+        this.amenityRepository = amenityRepository;
         this.cloudinaryService = cloudinaryService;
         this.applicationEventPublisher = applicationEventPublisher;
     }
@@ -39,14 +39,14 @@ public class AmenitiesServiceImpl implements AmenitiesService {
                 .imagePublicId(request.imagePublicId())
                 .build();
 
-        Amenity savedAmenity = amenitiesRepository.save(newAmenity);
+        Amenity savedAmenity = amenityRepository.save(newAmenity);
 
         return AmenitiesResponseBuilder.toDto(savedAmenity);
     }
 
     @Override
     public List<AmenitiesResponse> getAllAmenities() {
-        return amenitiesRepository.findAll()
+        return amenityRepository.findAll()
                 .stream()
                 .map(AmenitiesResponseBuilder::toDto)
                 .toList();
@@ -55,7 +55,7 @@ public class AmenitiesServiceImpl implements AmenitiesService {
 
     @Override
     public AmenitiesResponse getAmenityById(UUID id) {
-        Amenity amenity = amenitiesRepository.findById(id)
+        Amenity amenity = amenityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Amenity not found with id: " + id));
 
         return AmenitiesResponseBuilder.toDto(amenity);
@@ -64,11 +64,11 @@ public class AmenitiesServiceImpl implements AmenitiesService {
     @Override
     @Transactional
     public void deleteAmenity(UUID id) {
-        Amenity amenity = amenitiesRepository.findById(id)
+        Amenity amenity = amenityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Amenity not found with id: " + id));
 
         // 2. Delete from DB
-        amenitiesRepository.delete(amenity);
+        amenityRepository.delete(amenity);
 
         applicationEventPublisher.publishEvent(
                 AmenityDeletedEVent.builder()
