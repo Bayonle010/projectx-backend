@@ -89,6 +89,7 @@ public class ListingServiceImpl implements ListingService {
                 .serviceCharge(request.serviceCharge())
                 .proofOfOwnershipUrl(request.proofOfOwnershipUrl().trim())
                 .videoUrl(request.videoUrl().trim())
+                .videoPublicId(request.videoPublicId())
                 .owner(owner)
                 .amenities(amenities)
                 .images(new ArrayList<>())

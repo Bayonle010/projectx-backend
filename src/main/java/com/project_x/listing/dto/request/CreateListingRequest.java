@@ -4,6 +4,7 @@ import com.project_x.listing.enums.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
+import org.aspectj.weaver.ast.Not;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -104,6 +105,9 @@ public record CreateListingRequest(
         List<@Valid ImageRequest> images,
 
         @NotBlank
-        String videoUrl
+        String videoUrl,
+
+        @NotBlank
+        String videoPublicId
 
 ) {}
