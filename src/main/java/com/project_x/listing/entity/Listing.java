@@ -1,7 +1,8 @@
-package com.project_x.listing.houseowners.entity;
+package com.project_x.listing.entity;
 
-import com.project_x.listing.adress.entity.Lga;
-import com.project_x.listing.adress.entity.State;
+import com.project_x.adress.entity.Lga;
+import com.project_x.adress.entity.State;
+import com.project_x.listing.enums.*;
 import com.project_x.listing.houseowners.enums.*;
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;

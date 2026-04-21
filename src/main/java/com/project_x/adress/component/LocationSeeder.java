@@ -1,9 +1,9 @@
-package com.project_x.listing.adress.component;
+package com.project_x.adress.component;
 
-import com.project_x.listing.adress.entity.Lga;
-import com.project_x.listing.adress.entity.State;
-import com.project_x.listing.adress.repository.LgaRepository;
-import com.project_x.listing.adress.repository.StateRepository;
+import com.project_x.adress.entity.Lga;
+import com.project_x.adress.entity.State;
+import com.project_x.adress.repository.LgaRepository;
+import com.project_x.adress.repository.StateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;

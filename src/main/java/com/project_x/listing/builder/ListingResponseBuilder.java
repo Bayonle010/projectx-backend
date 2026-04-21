@@ -1,10 +1,10 @@
-package com.project_x.listing.houseowners.builder;
+package com.project_x.listing.builder;
 
-import com.project_x.listing.houseowners.dto.response.ImageResponse;
-import com.project_x.listing.houseowners.dto.response.ListingResponse;
-import com.project_x.listing.houseowners.entity.Amenity;
-import com.project_x.listing.houseowners.entity.Listing;
-import com.project_x.listing.houseowners.entity.ListingImage;
+import com.project_x.listing.dto.response.ImageResponse;
+import com.project_x.listing.dto.response.ListingResponse;
+import com.project_x.listing.entity.Amenity;
+import com.project_x.listing.entity.Listing;
+import com.project_x.listing.entity.ListingImage;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;

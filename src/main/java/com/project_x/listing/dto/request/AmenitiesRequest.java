@@ -1,4 +1,4 @@
-package com.project_x.listing.houseowners.dto.request;
+package com.project_x.listing.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;

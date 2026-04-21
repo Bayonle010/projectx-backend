@@ -1,6 +1,6 @@
-package com.project_x.listing.adress.repository;
+package com.project_x.adress.repository;
 
-import com.project_x.listing.adress.entity.Lga;
+import com.project_x.adress.entity.Lga;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

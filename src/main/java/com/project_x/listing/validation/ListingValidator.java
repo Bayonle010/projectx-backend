@@ -1,13 +1,13 @@
-package com.project_x.listing.houseowners.validation;
+package com.project_x.listing.validation;
 
 
 import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
-import com.project_x.listing.adress.entity.Lga;
-import com.project_x.listing.adress.entity.State;
-import com.project_x.listing.houseowners.dto.request.CreateListingRequest;
-import com.project_x.listing.houseowners.entity.Amenity;
-import com.project_x.listing.houseowners.repository.AmenityRepository;
+import com.project_x.adress.entity.Lga;
+import com.project_x.adress.entity.State;
+import com.project_x.listing.dto.request.CreateListingRequest;
+import com.project_x.listing.entity.Amenity;
+import com.project_x.listing.repository.AmenityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

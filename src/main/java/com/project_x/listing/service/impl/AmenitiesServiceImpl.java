@@ -1,14 +1,14 @@
-package com.project_x.listing.houseowners.service.impl;
+package com.project_x.listing.service.impl;
 
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.file.service.impl.CloudinaryServiceImpl;
-import com.project_x.listing.houseowners.builder.AmenitiesResponseBuilder;
-import com.project_x.listing.houseowners.dto.request.AmenitiesRequest;
-import com.project_x.listing.houseowners.dto.response.AmenitiesResponse;
-import com.project_x.listing.houseowners.entity.Amenity;
-import com.project_x.listing.houseowners.event.dto.AmenityDeletedEVent;
-import com.project_x.listing.houseowners.repository.AmenityRepository;
-import com.project_x.listing.houseowners.service.AmenitiesService;
+import com.project_x.listing.builder.AmenitiesResponseBuilder;
+import com.project_x.listing.dto.request.AmenitiesRequest;
+import com.project_x.listing.dto.response.AmenitiesResponse;
+import com.project_x.listing.entity.Amenity;
+import com.project_x.listing.event.dto.AmenityDeletedEVent;
+import com.project_x.listing.repository.AmenityRepository;
+import com.project_x.listing.service.AmenitiesService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

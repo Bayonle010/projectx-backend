@@ -1,11 +1,11 @@
-package com.project_x.listing.houseowners.controller;
+package com.project_x.listing.controller;
 
 
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
-import com.project_x.listing.houseowners.dto.request.AmenitiesRequest;
-import com.project_x.listing.houseowners.dto.response.AmenitiesResponse;
-import com.project_x.listing.houseowners.service.AmenitiesService;
+import com.project_x.listing.dto.request.AmenitiesRequest;
+import com.project_x.listing.dto.response.AmenitiesResponse;
+import com.project_x.listing.service.AmenitiesService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
-package com.project_x.listing.houseowners.event.listner;
+package com.project_x.listing.event.listner;
 
 import com.project_x.file.service.impl.CloudinaryServiceImpl;
-import com.project_x.listing.houseowners.event.dto.AmenityDeletedEVent;
+import com.project_x.listing.event.dto.AmenityDeletedEVent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

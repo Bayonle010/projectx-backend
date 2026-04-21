@@ -1,4 +1,4 @@
-package com.project_x.listing.adress.entity;
+package com.project_x.adress.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

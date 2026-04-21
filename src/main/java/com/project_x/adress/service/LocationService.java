@@ -1,12 +1,12 @@
-package com.project_x.listing.adress.service;
+package com.project_x.adress.service;
 
 import com.project_x.core.exception.ResourceNotFoundException;
-import com.project_x.listing.adress.dto.LgaResponse;
-import com.project_x.listing.adress.dto.StateResponse;
-import com.project_x.listing.adress.entity.Lga;
-import com.project_x.listing.adress.entity.State;
-import com.project_x.listing.adress.repository.LgaRepository;
-import com.project_x.listing.adress.repository.StateRepository;
+import com.project_x.adress.dto.LgaResponse;
+import com.project_x.adress.dto.StateResponse;
+import com.project_x.adress.entity.Lga;
+import com.project_x.adress.entity.State;
+import com.project_x.adress.repository.LgaRepository;
+import com.project_x.adress.repository.StateRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

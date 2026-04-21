@@ -1,4 +1,4 @@
-package com.project_x.listing.houseowners.entity;
+package com.project_x.listing.entity;
 
 
 import jakarta.persistence.*;

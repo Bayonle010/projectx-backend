@@ -1,4 +1,4 @@
-package com.project_x.listing.houseowners.dto.response;
+package com.project_x.listing.dto.response;
 
 import lombok.Builder;
 

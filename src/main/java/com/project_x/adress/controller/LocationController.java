@@ -1,9 +1,9 @@
-package com.project_x.listing.adress.controller;
+package com.project_x.adress.controller;
 
 
-import com.project_x.listing.adress.dto.LgaResponse;
-import com.project_x.listing.adress.dto.StateResponse;
-import com.project_x.listing.adress.service.LocationService;
+import com.project_x.adress.dto.LgaResponse;
+import com.project_x.adress.dto.StateResponse;
+import com.project_x.adress.service.LocationService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

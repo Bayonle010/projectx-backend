@@ -1,4 +1,4 @@
-package com.project_x.listing.houseowners.event.dto;
+package com.project_x.listing.event.dto;
 
 import lombok.Builder;
 

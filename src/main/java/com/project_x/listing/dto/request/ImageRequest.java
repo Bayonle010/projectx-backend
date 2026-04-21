@@ -1,4 +1,4 @@
-package com.project_x.listing.houseowners.dto.request;
+package com.project_x.listing.dto.request;
 
 public record ImageRequest(
         String publicId,

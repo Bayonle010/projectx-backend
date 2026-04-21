@@ -1,5 +1,6 @@
-package com.project_x.listing.houseowners.dto.request;
+package com.project_x.listing.dto.request;
 
+import com.project_x.listing.enums.*;
 import com.project_x.listing.houseowners.enums.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;

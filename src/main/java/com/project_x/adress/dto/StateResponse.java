@@ -1,4 +1,4 @@
-package com.project_x.listing.adress.dto;
+package com.project_x.adress.dto;
 
 import lombok.Builder;
 
