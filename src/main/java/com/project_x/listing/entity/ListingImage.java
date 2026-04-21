@@ -28,7 +28,7 @@ public class ListingImage {
     @Column(name = "url", nullable = false)
     private String url; // optimizedUrl for display
 
-    @Column(name = "resource_type", nullable = false)
+    @Column(name = "resource_type")
     private String resourceType; // image, video, raw
 
     @Column(name = "format")

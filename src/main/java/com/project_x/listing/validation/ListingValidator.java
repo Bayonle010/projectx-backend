@@ -9,11 +9,13 @@ import com.project_x.listing.dto.request.CreateListingRequest;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.repository.AmenityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ListingValidator {
@@ -56,6 +58,9 @@ public class ListingValidator {
     }
 
     private void validateDescription(String description) {
+        int count = wordCount(description);
+        log.info("Description word count: {}", count);
+
         if (description == null || wordCount(description) < 100) {
             throw new BadRequestException("Description must be at least 100 words");
         }
