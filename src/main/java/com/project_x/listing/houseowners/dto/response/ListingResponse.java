@@ -1,6 +1,7 @@
 package com.project_x.listing.houseowners.dto.response;
 
 import com.project_x.listing.houseowners.enums.*;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -8,7 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public record ListingResponse<ImageResponse>(
+@Builder
+public record ListingResponse(
 
         UUID id,
 
