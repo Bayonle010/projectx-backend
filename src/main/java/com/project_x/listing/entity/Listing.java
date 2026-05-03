@@ -27,58 +27,58 @@ public class Listing {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private ListingRelationshipType relationshipType; // OWNER, AGENT
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = true, length = 50)
     private PropertyType propertyType;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer bedroomCount; // 0 means studio
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer bathroomCount;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer toiletCount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = true, length = 30)
     private PropertyCondition propertyCondition;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer unitCount;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = true, length = 30)
     private WaterSource waterSource;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Boolean parkingAvailable;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Boolean fencedOrGated;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Boolean renovated;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = true, length = 30)
     private FurnishingStatus furnishingStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_id", nullable = false)
+    @JoinColumn(name = "state_id", nullable = true)
     private State state;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lga_id", nullable = false)
+    @JoinColumn(name = "lga_id", nullable = true)
     private Lga lga;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = true, length = 500)
     private String addressLine;
 
     @Column(length = 255)
@@ -93,14 +93,14 @@ public class Listing {
     @Column(length = 255)
     private String placeId;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Boolean shareAddressWithSeekers;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(nullable = true, precision = 19, scale = 2)
     private BigDecimal rentAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = true, length = 20)
     private RentPaymentFrequency rentPaymentFrequency;
 
     @Column(precision = 19, scale = 2)
@@ -115,7 +115,7 @@ public class Listing {
     @Column(precision = 19, scale = 2)
     private BigDecimal serviceCharge;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String proofOfOwnershipUrl;
 
     @ManyToMany
@@ -129,14 +129,14 @@ public class Listing {
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingImage> images = new ArrayList<>();
 
-    @Column(name = "video_url", nullable = false)
+    @Column(name = "video_url", nullable = true)
     private String videoUrl;
 
-    @Column(name = "video_public_id", nullable = false)
+    @Column(name = "video_public_id", nullable = true)
     private String videoPublicId;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = true, updatable = false)
     private Instant createdAt;
 
     @UpdateTimestamp

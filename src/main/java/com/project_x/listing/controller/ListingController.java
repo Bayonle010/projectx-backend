@@ -3,7 +3,7 @@ package com.project_x.listing.controller;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.security.model.AuthenticationIdentity;
-import com.project_x.listing.dto.request.CreateListingRequest;
+import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.service.ListingService;
 import jakarta.validation.Valid;
@@ -19,9 +19,9 @@ public class ListingController {
 
     private final ListingService listingService;
 
-    @PostMapping
+    @PostMapping("/save")
     public ResponseEntity<ApiResponse> create(
-            @Valid @RequestBody CreateListingRequest request,
+            @Valid @RequestBody SaveListingRequest request,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
     ) {
         ListingResponse response = listingService.create(request, auth);

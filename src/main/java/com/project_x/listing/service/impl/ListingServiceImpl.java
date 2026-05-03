@@ -5,7 +5,7 @@ import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
 import com.project_x.adress.service.LocationService;
 import com.project_x.listing.builder.ListingResponseBuilder;
-import com.project_x.listing.dto.request.CreateListingRequest;
+import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.dto.request.ImageRequest;
 import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.entity.Amenity;
@@ -35,7 +35,7 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     @Transactional
-    public ListingResponse create(CreateListingRequest request, AuthenticationIdentity auth) {
+    public ListingResponse save(SaveListingRequest request, AuthenticationIdentity auth) {
         listingValidator.validateForCreate(request);
 
         User owner = userService.fetchAuthenticatedUser(auth);
@@ -53,7 +53,7 @@ public class ListingServiceImpl implements ListingService {
     }
 
     private Listing buildListing(
-            CreateListingRequest request,
+            SaveListingRequest request,
             User owner,
             State state,
             Lga lga,

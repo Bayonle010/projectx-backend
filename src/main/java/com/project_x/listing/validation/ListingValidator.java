@@ -5,7 +5,7 @@ import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
-import com.project_x.listing.dto.request.CreateListingRequest;
+import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.repository.AmenityRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class ListingValidator {
 
     private final AmenityRepository amenityRepository;
 
-    public void validateForCreate(CreateListingRequest request) {
+    public void validateForCreate(SaveListingRequest request) {
         validateDescription(request.description());
         validateImages(request);
         validateCoordinates(request.latitude(), request.longitude());
@@ -66,7 +66,7 @@ public class ListingValidator {
         }
     }
 
-    private void validateImages(CreateListingRequest request) {
+    private void validateImages(SaveListingRequest request) {
         if (request.images() == null || request.images().size() < 6) {
             throw new BadRequestException("At least 6 property images are required");
         }
