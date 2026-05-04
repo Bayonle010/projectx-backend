@@ -5,6 +5,7 @@ import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
+import com.project_x.listing.dto.request.ImageRequest;
 import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.repository.AmenityRepository;
@@ -22,10 +23,18 @@ public class ListingValidator {
 
     private final AmenityRepository amenityRepository;
 
-    public void validateForCreate(SaveListingRequest request) {
-        validateDescription(request.description());
-        validateImages(request);
+    public void validateForDraftSave(SaveListingRequest request) {
         validateCoordinates(request.latitude(), request.longitude());
+
+        if (request.description() != null && wordCount(request.description()) < 100){
+            throw new BadRequestException("Description must be at least 100 characters");
+        }
+
+        if (request.images() != null){
+            validateImages(request.images());
+        }
+
+
     }
 
 
@@ -66,15 +75,12 @@ public class ListingValidator {
         }
     }
 
-    private void validateImages(SaveListingRequest request) {
-        if (request.images() == null || request.images().size() < 6) {
-            throw new BadRequestException("At least 6 property images are required");
-        }
-
-        boolean hasInvalidImage = request.images().stream().anyMatch(image ->
-                image == null ||
-                        isBlank(image.publicId()) ||
-                        isBlank(image.optimizedUrl())
+    private void validateImages(List<ImageRequest> images) {
+        boolean hasInvalidImage = images.stream().anyMatch(
+                image ->
+                        image ==null ||
+                                isBlank(image.publicId()) ||
+                                isBlank(image.optimizedUrl())
         );
 
         if (hasInvalidImage) {

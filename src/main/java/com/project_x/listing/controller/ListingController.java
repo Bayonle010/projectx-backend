@@ -24,10 +24,10 @@ public class ListingController {
             @Valid @RequestBody SaveListingRequest request,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
     ) {
-        ListingResponse response = listingService.create(request, auth);
+        ListingResponse response = listingService.save(request, auth);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                ResponseUtil.success(0, "Property listed", "Listing created successfully", response, null)
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(0, "Listing saved", "Listing saved successfully", response, null)
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.project_x.listing.service.impl;
 
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
@@ -11,6 +12,7 @@ import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
+import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.service.ListingService;
 import com.project_x.listing.validation.ListingValidator;
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,65 +39,23 @@ public class ListingServiceImpl implements ListingService {
     @Override
     @Transactional
     public ListingResponse save(SaveListingRequest request, AuthenticationIdentity auth) {
-        listingValidator.validateForCreate(request);
 
         User owner = userService.fetchAuthenticatedUser(auth);
-        State state = locationService.findState(request.stateId());
-        Lga lga = locationService.findLga(request.lgaId());
 
-        listingValidator.validateLgaBelongsToState(lga, state);
-        Set<Amenity> amenities = listingValidator.resolveAmenities(request.amenityIds());
+        Listing listing = request.id() == null
+                ? createNewDraft(owner)
+                : listingRepository.findByIdAndOwnerId(request.id(), owner.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
 
-        Listing listing = buildListing(request, owner, state, lga, amenities);
-        attachImages(listing, request.images());
+        listingValidator.validateForDraftSave(request);
+
+        applyChanges(listing, request);
 
         Listing saved = listingRepository.save(listing);
         return listingResponseBuilder.toResponse(saved);
     }
 
-    private Listing buildListing(
-            SaveListingRequest request,
-            User owner,
-            State state,
-            Lga lga,
-            Set<Amenity> amenities
-    ) {
-        return Listing.builder()
-                .relationshipType(request.relationshipType())
-                .propertyType(request.propertyType())
-                .bedroomCount(request.bedroomCount())
-                .bathroomCount(request.bathroomCount())
-                .toiletCount(request.toiletCount())
-                .propertyCondition(request.propertyCondition())
-                .unitCount(request.unitCount())
-                .description(request.description().trim())
-                .waterSource(request.waterSource())
-                .parkingAvailable(request.parkingAvailable())
-                .fencedOrGated(request.fencedOrGated())
-                .renovated(request.renovated())
-                .furnishingStatus(request.furnishingStatus())
-                .state(state)
-                .lga(lga)
-                .addressLine(request.addressLine().trim())
-                .landmark(request.landmark())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
-                .placeId(request.placeId())
-                .shareAddressWithSeekers(request.shareAddressWithSeekers())
-                .rentAmount(request.rentAmount())
-                .rentPaymentFrequency(request.rentPaymentFrequency())
-                .agencyFee(request.agencyFee())
-                .legalAgreementFee(request.legalAgreementFee())
-                .cautionFee(request.cautionFee())
-                .serviceCharge(request.serviceCharge())
-                .proofOfOwnershipUrl(request.proofOfOwnershipUrl().trim())
-                .videoUrl(request.videoUrl().trim())
-                .videoPublicId(request.videoPublicId())
-                .owner(owner)
-                .amenities(amenities)
-                .images(new ArrayList<>())
-                .build();
-    }
+
 
     private void attachImages(Listing listing, List<ImageRequest> images) {
         for (int i = 0; i < images.size(); i++) {
@@ -110,6 +71,154 @@ public class ListingServiceImpl implements ListingService {
                     .build();
 
             listing.getImages().add(image);
+        }
+    }
+
+    private Listing createNewDraft(User owner) {
+        return Listing.builder()
+                .owner(owner)
+                .status(ListingStatus.DRAFT)
+                .amenities(new HashSet<>())
+                .images(new ArrayList<>())
+                .build();
+    }
+
+
+    private void applyChanges(Listing listing, SaveListingRequest request) {
+        if (request.relationshipType() != null) {
+            listing.setRelationshipType(request.relationshipType());
+        }
+
+        if (request.propertyType() != null) {
+            listing.setPropertyType(request.propertyType());
+        }
+
+        if (request.bedroomCount() != null) {
+            listing.setBedroomCount(request.bedroomCount());
+        }
+
+        if (request.bathroomCount() != null) {
+            listing.setBathroomCount(request.bathroomCount());
+        }
+
+        if (request.toiletCount() != null) {
+            listing.setToiletCount(request.toiletCount());
+        }
+
+        if (request.propertyCondition() != null) {
+            listing.setPropertyCondition(request.propertyCondition());
+        }
+
+        if (request.unitCount() != null) {
+            listing.setUnitCount(request.unitCount());
+        }
+
+        if (request.description() != null) {
+            listing.setDescription(request.description().trim());
+        }
+
+        if (request.waterSource() != null) {
+            listing.setWaterSource(request.waterSource());
+        }
+
+        if (request.parkingAvailable() != null) {
+            listing.setParkingAvailable(request.parkingAvailable());
+        }
+
+        if (request.fencedOrGated() != null) {
+            listing.setFencedOrGated(request.fencedOrGated());
+        }
+
+        if (request.renovated() != null) {
+            listing.setRenovated(request.renovated());
+        }
+
+        if (request.furnishingStatus() != null) {
+            listing.setFurnishingStatus(request.furnishingStatus());
+        }
+
+        if (request.stateId() != null) {
+            State state = locationService.findState(request.stateId());
+            listing.setState(state);
+        }
+
+        if (request.lgaId() != null) {
+            Lga lga = locationService.findLga(request.lgaId());
+            listing.setLga(lga);
+        }
+
+        if (listing.getState() != null && listing.getLga() != null) {
+            listingValidator.validateLgaBelongsToState(listing.getLga(), listing.getState());
+        }
+
+        if (request.addressLine() != null) {
+            listing.setAddressLine(request.addressLine().trim());
+        }
+
+        if (request.landmark() != null) {
+            listing.setLandmark(request.landmark());
+        }
+
+        if (request.latitude() != null) {
+            listing.setLatitude(request.latitude());
+        }
+
+        if (request.longitude() != null) {
+            listing.setLongitude(request.longitude());
+        }
+
+        if (request.placeId() != null) {
+            listing.setPlaceId(request.placeId());
+        }
+
+        if (request.shareAddressWithSeekers() != null) {
+            listing.setShareAddressWithSeekers(request.shareAddressWithSeekers());
+        }
+
+        if (request.rentAmount() != null) {
+            listing.setRentAmount(request.rentAmount());
+        }
+
+        if (request.rentPaymentFrequency() != null) {
+            listing.setRentPaymentFrequency(request.rentPaymentFrequency());
+        }
+
+        if (request.agencyFee() != null) {
+            listing.setAgencyFee(request.agencyFee());
+        }
+
+        if (request.legalAgreementFee() != null) {
+            listing.setLegalAgreementFee(request.legalAgreementFee());
+        }
+
+        if (request.cautionFee() != null) {
+            listing.setCautionFee(request.cautionFee());
+        }
+
+        if (request.serviceCharge() != null) {
+            listing.setServiceCharge(request.serviceCharge());
+        }
+
+        if (request.proofOfOwnershipUrl() != null) {
+            listing.setProofOfOwnershipUrl(request.proofOfOwnershipUrl().trim());
+        }
+
+        if (request.videoUrl() != null) {
+            listing.setVideoUrl(request.videoUrl().trim());
+        }
+
+        if (request.videoPublicId() != null) {
+            listing.setVideoPublicId(request.videoPublicId());
+        }
+
+        if (request.amenityIds() != null) {
+            Set<Amenity> amenities = listingValidator.resolveAmenities(request.amenityIds());
+            listing.setAmenities(amenities);
+        }
+
+        if (request.images() != null) {
+            listing.getImages().clear();
+            attachImages(listing, request.images());
         }
     }
 

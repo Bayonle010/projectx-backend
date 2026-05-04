@@ -139,6 +139,10 @@ public class Listing {
     @Column(nullable = true, updatable = false)
     private Instant createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30) //TODO: make nullable = false and backfill DRAFT for existing column.
+    private ListingStatus status = ListingStatus.DRAFT;
+
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
