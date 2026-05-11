@@ -64,7 +64,7 @@ public class ListingServiceImpl implements ListingService {
             throw new BadRequestException("Only draft listings can be submitted for review");
         }
 
-        listingValidator.validateSubmission(listing);
+        listingValidator.validateForSubmission(listing);
 
         listing.setStatus(ListingStatus.UNDER_REVIEW);
 
