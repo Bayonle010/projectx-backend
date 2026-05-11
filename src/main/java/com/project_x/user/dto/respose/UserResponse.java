@@ -1,4 +1,4 @@
-package com.project_x.authentication.customauth.dto.response;
+package com.project_x.user.dto.respose;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

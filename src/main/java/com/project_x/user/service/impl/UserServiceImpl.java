@@ -1,7 +1,9 @@
 package com.project_x.user.service.impl;
 
+import com.project_x.user.builder.UserResponseBuilder;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.security.model.AuthenticationIdentity;
+import com.project_x.user.dto.respose.UserResponse;
 import com.project_x.user.entity.User;
 import com.project_x.user.repository.UserRepository;
 import com.project_x.user.service.UserService;
@@ -30,5 +32,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User fetchAuthenticatedUser(AuthenticationIdentity authenticationIdentity){
         return userRepository.findById(UUID.fromString(authenticationIdentity.getId())).orElseThrow(()-> new ResourceNotFoundException("user not found"));
+    }
+
+    @Override
+    public UserResponse fetchPublicInfoForAuthenticatedUser(AuthenticationIdentity authenticationIdentity) {
+        User authenticatedUser = this.fetchAuthenticatedUser(authenticationIdentity);
+        return  UserResponseBuilder.toDto(authenticatedUser);
     }
 }

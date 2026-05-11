@@ -1,11 +1,11 @@
 package com.project_x.authentication.customauth.service.impl;
 
-import com.project_x.authentication.customauth.builder.UserResponseBuilder;
+import com.project_x.user.builder.UserResponseBuilder;
 import com.project_x.authentication.customauth.dto.request.LoginRequest;
 import com.project_x.authentication.customauth.dto.request.RefreshTokenRequest;
 import com.project_x.authentication.customauth.dto.request.RegistrationRequest;
 import com.project_x.authentication.customauth.dto.response.AuthResponse;
-import com.project_x.authentication.customauth.dto.response.UserResponse;
+import com.project_x.user.dto.respose.UserResponse;
 import com.project_x.authentication.customauth.service.AuthService;
 import com.project_x.authentication.customauth.token.service.TokenService;
 import com.project_x.core.exception.ResourceNotFoundException;
