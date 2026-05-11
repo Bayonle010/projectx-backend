@@ -1,5 +1,6 @@
 package com.project_x.listing.service.impl;
 
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.adress.entity.Lga;
@@ -22,10 +23,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -55,6 +53,25 @@ public class ListingServiceImpl implements ListingService {
         return listingResponseBuilder.toResponse(saved);
     }
 
+    @Override
+    public ListingResponse submitForReview(UUID listingId, AuthenticationIdentity authenticationIdentity) {
+        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+
+        Listing listing = listingRepository.findByIdAndOwnerId(listingId, owner.getId())
+                .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
+
+        if (listing.getStatus() != ListingStatus.DRAFT){
+            throw new BadRequestException("Only draft listings can be submitted for review");
+        }
+
+        listingValidator.validateSubmission(listing);
+
+        listing.setStatus(ListingStatus.UNDER_REVIEW);
+
+        Listing saved = listingRepository.save(listing);
+
+        return listingResponseBuilder.toResponse(saved);
+    }
 
 
     private void attachImages(Listing listing, List<ImageRequest> images) {
