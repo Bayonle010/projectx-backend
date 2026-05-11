@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -119,7 +120,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex
+    ) {
+        String method = ex.getMethod();
 
+        String supportedMethods = ex.getSupportedHttpMethods() == null
+                ? "the correct HTTP method"
+                : ex.getSupportedHttpMethods().toString();
 
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.METHOD_NOT_ALLOWED.value(), // 405
+                "HTTP method '" + method + "' is not allowed for this endpoint",
+                "Supported method(s): " + supportedMethods,
+                null
+        );
 
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+    }
 }
