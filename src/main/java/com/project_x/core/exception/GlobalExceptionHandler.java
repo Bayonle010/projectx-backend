@@ -5,6 +5,7 @@ import com.project_x.core.response.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -101,6 +102,21 @@ public class GlobalExceptionHandler {
                         "Maximum upload size exceeded",
                         null
                 ));
+    }
+
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse> handleInvalidJson(
+            HttpMessageNotReadableException ex
+    ) {
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid request body",
+                "Request body is missing, malformed, or contains invalid JSON",
+                null
+        );
+
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
 
