@@ -2,6 +2,8 @@ package com.project_x.core.exception;
 
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -138,5 +140,25 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+    }
+
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse> handleConstraintViolation(ConstraintViolationException ex) {
+
+        String message = ex.getConstraintViolations()
+                .stream()
+                .findFirst()
+                .map(ConstraintViolation::getMessage)
+                .orElse("Invalid request parameter");
+
+        return ResponseEntity.badRequest().body(
+                ResponseUtil.error(
+                        HttpStatus.BAD_REQUEST.value(),
+                        message,
+                        null,
+                        null
+                )
+        );
     }
 }
