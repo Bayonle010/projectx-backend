@@ -19,7 +19,7 @@ public class ListingController {
 
     private final ListingService listingService;
 
-    @PostMapping("/save")
+    @PostMapping("/draft")
     public ResponseEntity<ApiResponse> create(
             @Valid @RequestBody SaveListingRequest request,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
