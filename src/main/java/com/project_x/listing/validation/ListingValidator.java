@@ -28,7 +28,7 @@ public class ListingValidator {
         validateCoordinates(request.latitude(), request.longitude());
 
         if (request.description() != null && wordCount(request.description()) < 100){
-            throw new BadRequestException("Description must be at least 100 characters");
+            throw new BadRequestException("Description must be at least 100 words");
         }
 
         if (request.images() != null){
