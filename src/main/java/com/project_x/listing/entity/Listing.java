@@ -140,7 +140,7 @@ public class Listing {
     private Instant createdAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 30) //TODO: make nullable = false and backfill DRAFT for existing column.
+    @Column(length = 30)
     private ListingStatus status = ListingStatus.DRAFT;
 
     @UpdateTimestamp
@@ -150,5 +150,21 @@ public class Listing {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+
+// Convert every existing row to DRAFT
+//UPDATE listings
+//SET status = 'DRAFT';
+//
+//-- Remove old constraint
+//ALTER TABLE listings
+//DROP CONSTRAINT IF EXISTS listings_status_check;
+//
+//-- Create new constraint with current enum values
+//ALTER TABLE listings
+//ADD CONSTRAINT listings_status_check
+//CHECK (
+//    status IN ('DRAFT', 'UNDER_REVIEW', 'PUBLISHED', 'ARCHIVED')
+//);
 
 }

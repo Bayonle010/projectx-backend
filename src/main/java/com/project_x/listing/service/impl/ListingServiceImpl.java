@@ -57,7 +57,7 @@ public class ListingServiceImpl implements ListingService {
     public ListingResponse submitForReview(UUID listingId, AuthenticationIdentity authenticationIdentity) {
         User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
 
-        Listing listing = listingRepository.findByIdAndOwnerId(listingId, owner.getId())
+        Listing listing = listingRepository.findWithDetailsByIdAndOwnerId(listingId, owner.getId())
                 .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
 
         if (listing.getStatus() != ListingStatus.DRAFT){
@@ -68,9 +68,7 @@ public class ListingServiceImpl implements ListingService {
 
         listing.setStatus(ListingStatus.UNDER_REVIEW);
 
-        Listing saved = listingRepository.save(listing);
-
-        return listingResponseBuilder.toResponse(saved);
+        return listingResponseBuilder.toResponse(listing);
     }
 
 
