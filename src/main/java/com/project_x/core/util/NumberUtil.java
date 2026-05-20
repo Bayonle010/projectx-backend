@@ -14,7 +14,7 @@ public class NumberUtil {
 
     public static String generateNumericOTP() {
         Random random = new Random();
-        int otpLength = 5;
+        int otpLength = 6;
         StringBuilder otpBuilder = new StringBuilder();
 
         for (int i = 0; i < otpLength; i++) {

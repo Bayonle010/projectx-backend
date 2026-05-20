@@ -55,7 +55,7 @@ public class OtpServiceImpl implements OtpService {
             List<Param> params = new ArrayList<>();
 //            params.add(Param.builder().name("otp").value(numericOTP).build());
 //            params.add(Param.builder().name("customer_name").value(user.getFirstname()).build());
-//            
+//
             messagingHandler
                     .sendEmailNotificationToQueue(List.of(formattedOtpMedium), new ArrayList<>(), new ArrayList<>(),
                             MessageType.Text, "otp: " + numericOTP, emailSubject, "noreply@helloabodr.com", params, true);
