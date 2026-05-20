@@ -142,8 +142,15 @@ public class AuthServiceImpl implements AuthService {
         // 3) Business rules
         if (!user.isEmailVerified()) {
             emailVerification.generateSignUpOtp(SignUpOtpRequest.builder().email(email).build());
+
+            AuthResponse response = AuthResponse.builder()
+                    .accessToken(null)
+                    .refreshToken(null)
+                    .userResponse(userInfo)
+                    .build();
+
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", userInfo, null));
+                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", response, null));
         }
 
         // 4) Generate tokens & persist refresh
