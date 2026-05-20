@@ -137,11 +137,13 @@ public class AuthServiceImpl implements AuthService {
         }
 
 
+        UserResponse userInfo = UserResponseBuilder.toDto(user);
+
         // 3) Business rules
         if (!user.isEmailVerified()) {
             emailVerification.generateSignUpOtp(SignUpOtpRequest.builder().email(email).build());
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", "", null));
+                    .body(ResponseUtil.success(0, String.format("OTP sent to %s ", email), "", userInfo, null));
         }
 
         // 4) Generate tokens & persist refresh
@@ -150,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
 
         tokenService.saveRefreshToken(user, refreshToken);
 
-         UserResponse userInfo = UserResponseBuilder.toDto(user);
+
 
         AuthResponse payload = AuthResponse.builder()
                 .accessToken(accessToken)
