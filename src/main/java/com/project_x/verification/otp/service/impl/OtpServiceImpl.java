@@ -43,7 +43,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public boolean handleGenerateOtp(String otpMedium, OtpEvent otpEvent, long expirationTimeInSeconds, String emailSubject, UserType userType, String emailTemplate) {
+    public boolean  handleGenerateOtp(String otpMedium, OtpEvent otpEvent, long expirationTimeInSeconds, String emailSubject, UserType userType, String emailTemplate) {
         String numericOTP = NumberUtil.generateNumericOTP();
         String formattedOtpMedium = otpMedium.toLowerCase().trim();
         User user = userService.findUserByEmail(formattedOtpMedium);
@@ -55,8 +55,7 @@ public class OtpServiceImpl implements OtpService {
             List<Param> params = new ArrayList<>();
 //            params.add(Param.builder().name("otp").value(numericOTP).build());
 //            params.add(Param.builder().name("customer_name").value(user.getFirstname()).build());
-//            params.add(Param.builder().name("year").value(String.valueOf(LocalDate.now().getYear())).build());
-
+//            
             messagingHandler
                     .sendEmailNotificationToQueue(List.of(formattedOtpMedium), new ArrayList<>(), new ArrayList<>(),
                             MessageType.Text, "otp: " + numericOTP, emailSubject, "noreply@helloabodr.com", params, true);
