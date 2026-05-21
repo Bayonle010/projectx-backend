@@ -1,5 +1,6 @@
 package com.project_x.verification.otp.service.impl;
 
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
@@ -32,6 +33,8 @@ public class OtpServiceImpl implements OtpService {
 
     private static final Logger logger = LoggerFactory.getLogger(OtpService.class);
 
+    private static final long OTP_RESEND_COOLDOWN_SECONDS = 50L;
+
     private final MessagingHandler messagingHandler;
     private final UserService userService;
     private final OtpRepository otpRepository;
@@ -44,10 +47,27 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     public boolean  handleGenerateOtp(String otpMedium, OtpEvent otpEvent, long expirationTimeInSeconds, String emailSubject, UserType userType, String emailTemplate) {
-        String numericOTP = NumberUtil.generateNumericOTP();
+
         String formattedOtpMedium = otpMedium.toLowerCase().trim();
         User user = userService.findUserByEmail(formattedOtpMedium);
 
+        Otp otp = otpRepository.findByOtpMediumAndOtpEventAndUserType(
+                formattedOtpMedium, otpEvent, userType
+        );
+
+        Instant now = Instant.now();
+
+        if (otp != null && otp.getUpdatedAt() != null){
+            Instant nextAllowedTime = otp.getUpdatedAt().plus(Duration.ofSeconds(OTP_RESEND_COOLDOWN_SECONDS));
+
+            if (now.isBefore(nextAllowedTime)){
+                long secondsLeft = Duration.between(now, nextAllowedTime).getSeconds();
+
+                throw new BadRequestException("please wait " + secondsLeft + "seconds before requesting another otp ");
+            }
+        }
+
+        String numericOTP = NumberUtil.generateNumericOTP();
 
         try {
 
@@ -64,11 +84,10 @@ public class OtpServiceImpl implements OtpService {
         }
 
 
-        Otp otp = otpRepository.findByOtpMediumAndOtpEventAndUserType(formattedOtpMedium, otpEvent, userType);
-        if (ObjectUtils.isEmpty(otp)) {
+        if (otp == null) {
             otp = new Otp();
             otp.setOtpEvent(otpEvent);
-            otp.setOtpMedium(otpMedium);
+            otp.setOtpMedium(formattedOtpMedium);
             otp.setUserType(userType);
         }
         otp.setToken(numericOTP);
