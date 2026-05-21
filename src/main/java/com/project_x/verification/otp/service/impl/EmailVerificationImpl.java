@@ -1,7 +1,10 @@
 package com.project_x.verification.otp.service.impl;
 
+import com.project_x.authentication.customauth.dto.response.AuthResponse;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.user.builder.UserResponseBuilder;
+import com.project_x.user.dto.respose.UserResponse;
 import com.project_x.user.entity.User;
 import com.project_x.user.enums.UserType;
 import com.project_x.user.service.UserService;
@@ -81,6 +84,15 @@ public class EmailVerificationImpl implements EmailVerification {
         user.setEmailVerified(true); //Marked user as a verified user
         userService.save(user);
 
+        UserResponse userResponse = UserResponseBuilder.toDto(user);
+
+
+        AuthResponse response = AuthResponse.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .userResponse(userResponse)
+                .build();
+
 
 //        TODO: SEND WELCOME EMAIL/ OTHER THINGS
 //        try {
@@ -92,6 +104,6 @@ public class EmailVerificationImpl implements EmailVerification {
 //        } catch (Exception e) {
 //            logger.error(e.getMessage());
 //        }
-        return ResponseEntity.status(HttpStatus.OK).body(ResponseUtil.success(0, "Email verification successful" , "","", null));
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseUtil.success(0, "Email verification successful" , "",response, null));
     }
 }
