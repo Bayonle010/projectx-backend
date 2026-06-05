@@ -52,6 +52,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
             User user = userService.findUserByEmail(userEmail);
 
+            Long tokenSessionVersion = jwt.getClaim("sessionVersion");
+
+            if (tokenSessionVersion == null || tokenSessionVersion != user.getSessionVersion()){
+                // user has logged out or session is invalidated
+                throw new IllegalArgumentException("invalid or Expired session");
+            }
+
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
