@@ -1,5 +1,6 @@
 package com.project_x.authentication.customauth.service.impl;
 
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.InvalidCredentialException;
 import com.project_x.user.builder.UserResponseBuilder;
 import com.project_x.authentication.customauth.dto.request.LoginRequest;
@@ -203,7 +204,7 @@ public class AuthServiceImpl implements AuthService {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new InvalidCredentialException("Authorization header missing");
+            throw new BadRequestException("Authorization header missing");
         }
 
         String token = authHeader.substring(7); // Remove "Bearer "
