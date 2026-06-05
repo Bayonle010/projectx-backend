@@ -7,6 +7,7 @@ import com.project_x.authentication.customauth.token.service.TokenService;
 import com.project_x.core.exception.InvalidCredentialException;
 import com.project_x.core.security.JwtUtil;
 import com.project_x.user.entity.User;
+import com.project_x.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -100,6 +101,22 @@ public class TokenServiceImpl implements TokenService {
         tokenRepository.deleteAllExpiredSince(now);
 
         log.info("Expired tokens cleanup completed at {}", now);
+    }
+
+    @Override
+    public void revokeTokens(User user) {
+        List<Token> validTokens = tokenRepository.findAllValidTokensByUser(user.getId());
+
+        if (validTokens.isEmpty()) {
+            return;
+        }
+
+        validTokens.forEach(token -> {
+            token.setRevoked(true);
+            token.setExpired(true);
+        });
+
+        tokenRepository.saveAll(validTokens);
     }
 
 }

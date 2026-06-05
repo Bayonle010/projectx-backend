@@ -13,5 +13,7 @@ public interface TokenService {
 
     void deleteExpiredTokens();
 
+    void revokeTokens(User user);
+
 
 }

@@ -40,6 +40,9 @@ public class User implements UserDetails {
     @Column(name = "username")
     private String username;
 
+    @Column(name = "session_version", nullable = false)
+    private long sessionVersion = 0L;
+
 
     @Column(name = "phone_number", nullable = false)
     @ColumnDefault("''")
@@ -47,6 +50,8 @@ public class User implements UserDetails {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+
 
     @CreationTimestamp
     @Column(name = "created_at")
