@@ -1,5 +1,6 @@
 package com.project_x.authentication.customauth.service.impl;
 
+import com.project_x.core.exception.InvalidCredentialException;
 import com.project_x.user.builder.UserResponseBuilder;
 import com.project_x.authentication.customauth.dto.request.LoginRequest;
 import com.project_x.authentication.customauth.dto.request.RefreshTokenRequest;
@@ -20,8 +21,10 @@ import com.project_x.user.enums.UserType;
 import com.project_x.user.repository.UserRepository;
 import com.project_x.verification.otp.dto.request.SignUpOtpRequest;
 import com.project_x.verification.otp.service.EmailVerification;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -193,5 +196,32 @@ public class AuthServiceImpl implements AuthService {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ResponseUtil.success(0, "success", "new access token generated successfully", authResponse, null));
+    }
+
+    @Override
+    public void logout(HttpServletRequest request) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new InvalidCredentialException("Authorization header missing");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+        Jwt decodedJwt = jwtUtil.decodeJwt(token);
+
+        String email = decodedJwt.getSubject(); // user email
+
+        log.info("decoded user email from access token: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialException("invalid token : user with the passed token not found"));
+
+        //  bump sessionVersion to invalidate all existing tokens
+        long currentVersion = user.getSessionVersion();
+        user.setSessionVersion(currentVersion + 1);
+        userRepository.save(user);
+
+        tokenService.revokeAllUserTokens(user);
+
     }
 }
