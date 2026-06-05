@@ -88,11 +88,13 @@ public class EmailVerificationImpl implements EmailVerification {
         userService.save(user);
 
         UserResponse userResponse = UserResponseBuilder.toDto(user);
+        String accessToken = jwtUtil.generateAccessTokenForUser(user);
+        String refreshToken = jwtUtil.generateRefreshTokenForUser(user);
 
 
         AuthResponse response = AuthResponse.builder()
-                .accessToken(jwtUtil.generateAccessTokenForUser(user))
-                .refreshToken(jwtUtil.generateRefreshTokenForUser(user))
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .userResponse(userResponse)
                 .build();
 
