@@ -5,7 +5,10 @@ import com.project_x.authentication.customauth.dto.request.RefreshTokenRequest;
 import com.project_x.authentication.customauth.dto.request.RegistrationRequest;
 import com.project_x.authentication.customauth.service.AuthService;
 import com.project_x.core.response.ApiResponse;
+import com.project_x.core.response.ResponseUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,4 +38,15 @@ public class AuthController {
     public ResponseEntity<ApiResponse> authenticate( @Valid @RequestBody RefreshTokenRequest request){
         return authService.refreshToken(request);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(HttpServletRequest request){
+
+        authService.logout(request);
+
+        return new ResponseEntity<>(ResponseUtil.success(
+                HttpStatus.OK.value(), "user logged out successfully","", null, null
+        ), HttpStatus.OK);
+    }
+
 }
