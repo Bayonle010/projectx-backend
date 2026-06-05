@@ -3,6 +3,7 @@ package com.project_x.verification.otp.service.impl;
 import com.project_x.authentication.customauth.dto.response.AuthResponse;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.core.security.JwtUtil;
 import com.project_x.user.builder.UserResponseBuilder;
 import com.project_x.user.dto.respose.UserResponse;
 import com.project_x.user.entity.User;
@@ -29,10 +30,12 @@ import java.util.Objects;
 public class EmailVerificationImpl implements EmailVerification {
     private final UserService userService;
     private final OtpService otpService;
+    private final JwtUtil jwtUtil;
 
-    public EmailVerificationImpl(UserService userService, OtpService otpService) {
+    public EmailVerificationImpl(UserService userService, OtpService otpService, JwtUtil jwtUtil) {
         this.userService = userService;
         this.otpService = otpService;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -88,8 +91,8 @@ public class EmailVerificationImpl implements EmailVerification {
 
 
         AuthResponse response = AuthResponse.builder()
-                .accessToken(null)
-                .refreshToken(null)
+                .accessToken(jwtUtil.generateAccessTokenForUser(user))
+                .refreshToken(jwtUtil.generateRefreshTokenForUser(user))
                 .userResponse(userResponse)
                 .build();
 
