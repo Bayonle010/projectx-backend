@@ -80,9 +80,9 @@ public class JwtUtil {
                 .claim("id", user.getId().toString())
                 .claim("userType", user.getUserType())
                 .claim("tokenType", "ACCESS")
+                .claim("sessionVersion", user.getSessionVersion())
                 .build();
 
-        log.info("claims are : {}" , claims);
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
@@ -125,6 +125,7 @@ public class JwtUtil {
                 .claim("id", user.getId())
                 .claim("tokenId", tokenId)
                 .claim("tokenType", "REFRESH")
+                .claim("sessionVersion", user.getSessionVersion())
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
