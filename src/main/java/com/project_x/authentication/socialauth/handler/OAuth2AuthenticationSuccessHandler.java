@@ -1,5 +1,6 @@
 package com.project_x.authentication.socialauth.handler;
 
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.security.JwtUtil;
 import com.project_x.user.entity.User;
 import com.project_x.user.repository.UserRepository;
@@ -41,11 +42,11 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         String email = oauth2User.getAttribute("email");
         if (email == null || email.isBlank()) {
-            throw new IllegalStateException("Authenticated social user email not found");
+            throw new BadRequestException("Authenticated social user email not found");
         }
 
         User user = userRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));
+                .orElseThrow(() -> new BadRequestException("Authenticated user not found in database"));
 
         String accessToken = jwtUtil.generateAccessTokenForUser(user);
 
