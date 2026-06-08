@@ -4,6 +4,7 @@ import com.project_x.authentication.socialauth.entity.Oauth2AuthenticationProvid
 import com.project_x.authentication.socialauth.repository.Oauth2ProviderRepository;
 import com.project_x.authentication.socialauth.service.SocialAuthenticationService;
 import com.project_x.authentication.socialauth.service.SocialUserInfo;
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.role.RoleRepository;
 import com.project_x.user.entity.User;
 import com.project_x.user.repository.UserRepository;
@@ -59,7 +60,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
             // Recommended policy:
             // only auto-link if provider email is verified
             if (!socialUserInfo.isEmailVerified()) {
-                throw new IllegalStateException("Social account email is not verified. Cannot link account automatically.");
+                throw new BadRequestException("Social account email is not verified. Cannot link account automatically.");
             }
 
             log.info("Existing local user found by email. Linking social provider.");
@@ -69,7 +70,9 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
 
         // 3. Create new user and link social provider
         log.info("No existing user found. Creating new social user.");
+
         User newUser = createNewSocialUser(socialUserInfo);
+        
         linkProvider(newUser, socialUserInfo);
 
         return newUser;

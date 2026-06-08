@@ -49,12 +49,14 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 .orElseThrow(() -> new BadRequestException("Authenticated user not found in database"));
 
         String accessToken = jwtUtil.generateAccessTokenForUser(user);
+        String refreshToken = jwtUtil.generateRefreshTokenForUser(user);
 
 
         String redirectUrl = UriComponentsBuilder
                 .fromUriString(appUrl)
                 .path("/auth/social-success")
-                .queryParam("token", accessToken)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
                 .build()
                 .toUriString();
 
