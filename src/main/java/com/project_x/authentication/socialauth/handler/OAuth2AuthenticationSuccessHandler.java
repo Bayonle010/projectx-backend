@@ -54,9 +54,9 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         String redirectUrl = UriComponentsBuilder
                 .fromUriString(appUrl)
-                .path("/auth/social-success")
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
+                .path("/login")
+                .queryParam("access_token", accessToken)
+                .queryParam("refresh_token", refreshToken)
                 .build()
                 .toUriString();
 
