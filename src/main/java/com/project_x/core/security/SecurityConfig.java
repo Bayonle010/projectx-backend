@@ -73,7 +73,7 @@ public class SecurityConfig {
                                 .userService(customOauth2UserService)
                         )
                         .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(OAuh2AuthenticationFailureHandler)
+                        .failureHandler(oAuh2AuthenticationFailureHandler)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
