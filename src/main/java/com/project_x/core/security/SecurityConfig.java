@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.project_x.authentication.socialauth.handler.OAuh2AuthenticationFailureHandler;
 import com.project_x.authentication.socialauth.handler.OAuth2AuthenticationSuccessHandler;
 import com.project_x.authentication.socialauth.service.impl.CustomOauth2UserServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class SecurityConfig {
     private final CustomAuthEntryPoint customAuthEntryPoint;
     private final CustomOauth2UserServiceImpl customOauth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuh2AuthenticationFailureHandler oAuh2AuthenticationFailureHandler;
 
     private static final String[] WHITE_LIST_URL = {
             "/swagger-ui/**",
@@ -71,6 +73,7 @@ public class SecurityConfig {
                                 .userService(customOauth2UserService)
                         )
                         .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(OAuh2AuthenticationFailureHandler)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
