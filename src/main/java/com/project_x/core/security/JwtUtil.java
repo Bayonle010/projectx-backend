@@ -23,7 +23,7 @@ public class JwtUtil {
 
     private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
-    private static final long ACCESS_TOKEN_DURATION_FOR_USER_IN_SEC = Duration.ofDays(30).getSeconds();  // set to 30 days
+    private static final long ACCESS_TOKEN_DURATION_FOR_USER_IN_SEC =1 * 60 * 60;  // set to 1 hour
 
     private static final long ACCESS_TOKEN_DURATION_FOR_ADMIN_IN_SEC = 10 * 60L; // set to 10 minutes
 
