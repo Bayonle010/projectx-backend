@@ -42,11 +42,19 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         String email = oauth2User.getAttribute("email");
         if (email == null || email.isBlank()) {
-            throw new BadRequestException("Authenticated social user email not found");
+            redirectWithError(response, "Unable to get email from social account");
+            return;
         }
 
         User user = userRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new BadRequestException("Authenticated user not found in database"));
+                .orElse(null);
+
+
+        if (user == null) {
+            redirectWithError(response, "No account found for this social login");
+            return;
+        }
+
 
         String accessToken = jwtUtil.generateAccessTokenForUser(user);
         String refreshToken = jwtUtil.generateRefreshTokenForUser(user);
@@ -57,6 +65,18 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 .path("/login")
                 .queryParam("access_token", accessToken)
                 .queryParam("refresh_token", refreshToken)
+                .build()
+                .toUriString();
+
+        response.sendRedirect(redirectUrl);
+    }
+
+    private void redirectWithError(HttpServletResponse response, String message) throws IOException {
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(appUrl)
+                .path("/login")
+                .queryParam("oauth_error", true)
+                .queryParam("message", message)
                 .build()
                 .toUriString();
 
