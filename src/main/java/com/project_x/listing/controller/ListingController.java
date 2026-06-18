@@ -1,5 +1,6 @@
 package com.project_x.listing.controller;
 
+import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.security.model.AuthenticationIdentity;
@@ -8,6 +9,7 @@ import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.service.ListingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +46,26 @@ public class ListingController {
 
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "Listing submitted for review successfully","" , response, "")
+        );
+    }
+
+    @GetMapping("")
+    public ResponseEntity<ApiResponse> fetchProperties(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) long page,
+            @RequestParam(required = false) String pageSize,
+            @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity authenticationIdentity
+    ){
+        Page<ListingResponse> response = listingService.fetchListings(status, page, pageSize, authenticationIdentity);
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        0,
+                        "Listings fetched",
+                        "Listings fetched successfully",
+                        response.getContent(),
+                        PaginationAdapters.toMeta(response)
+                )
         );
     }
 }
