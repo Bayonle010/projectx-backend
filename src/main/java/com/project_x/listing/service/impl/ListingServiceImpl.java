@@ -2,6 +2,7 @@ package com.project_x.listing.service.impl;
 
 import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
+import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
@@ -19,9 +20,11 @@ import com.project_x.listing.service.ListingService;
 import com.project_x.listing.validation.ListingValidator;
 import com.project_x.user.entity.User;
 import com.project_x.user.service.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -71,6 +74,30 @@ public class ListingServiceImpl implements ListingService {
         return listingResponseBuilder.toResponse(listing);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public Page<ListingResponse> fetchListings(String status, Long page, Long pageSize, AuthenticationIdentity authenticationIdentity) {
+        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+
+        Pageable pageable = PaginationAdapters.createPageRequestWithRecentFistsSortOrder(page, pageSize);
+
+        Page<Listing> listings;
+
+        if (status == null || status.isBlank() || status.equalsIgnoreCase("ALL")) {
+            listings = listingRepository.findByOwnerId(owner.getId(), pageable);
+        } else {
+            ListingStatus listingStatus = resolveListingStatus(status);
+
+            listings = listingRepository.findByOwnerIdAndStatus(
+                    owner.getId(),
+                    listingStatus,
+                    pageable
+            );
+        }
+
+        return listings.map(listingResponseBuilder::toResponse);
+    }
+
 
     private void attachImages(Listing listing, List<ImageRequest> images) {
         for (int i = 0; i < images.size(); i++) {
@@ -86,6 +113,14 @@ public class ListingServiceImpl implements ListingService {
                     .build();
 
             listing.getImages().add(image);
+        }
+    }
+
+    private ListingStatus resolveListingStatus(String status) {
+        try {
+            return ListingStatus.valueOf(status.trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestException("Invalid listing status: " + status);
         }
     }
 

@@ -52,8 +52,8 @@ public class ListingController {
     @GetMapping("")
     public ResponseEntity<ApiResponse> fetchProperties(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) long page,
-            @RequestParam(required = false) String pageSize,
+            @RequestParam(required = false) Long page,
+            @RequestParam(required = false)  Long pageSize,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity authenticationIdentity
     ){
         Page<ListingResponse> response = listingService.fetchListings(status, page, pageSize, authenticationIdentity);
