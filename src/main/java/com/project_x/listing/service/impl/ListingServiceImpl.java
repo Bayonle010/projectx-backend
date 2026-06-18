@@ -79,7 +79,7 @@ public class ListingServiceImpl implements ListingService {
     public Page<ListingResponse> fetchListings(String status, Long page, Long pageSize, AuthenticationIdentity authenticationIdentity) {
         User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
 
-        Pageable pageable = PaginationAdapters.createPageRequestWithRecentFistsSortOrder(page, pageSize);
+        Pageable pageable = PaginationAdapters.createPageRequestWithRecentFirstsSortOrder(page, pageSize);
 
         Page<Listing> listings;
 

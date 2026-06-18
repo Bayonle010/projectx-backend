@@ -16,7 +16,8 @@ public class PaginationAdapters {
     private static final Sort DEFAULT_SORT =
             Sort.by(Sort.Order.asc("createdAt"), Sort.Order.asc("id"));
 
-    private static final Sort RECENT_FIRST_SORT = Sort.by(Sort.Order.desc("createdAt"));
+    private static final Sort RECENT_FIRST_SORT =
+            Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));;
 
     /** Cap to prevent abuse*/
     private static final int MAX_PAGE_SIZE = 35;
@@ -35,6 +36,7 @@ public class PaginationAdapters {
     }
 
     /** API page is 1-based; Spring is 0-based */
+    /*when you want oldest records first.*/
     public static Pageable createPageRequest(Long page, Long pageSize) {
         long oneBasedPage  = resolvePage(page);
         long zeroBasedPage = oneBasedPage -1 ;
@@ -43,7 +45,8 @@ public class PaginationAdapters {
         return PageRequest.of((int) zeroBasedPage, (int) size, DEFAULT_SORT);
     }
 
-    public static Pageable createPageRequestWithRecentFistsSortOrder(Long page, Long pageSize) {
+//    Use when  you want newest records first.
+    public static Pageable createPageRequestWithRecentFirstsSortOrder(Long page, Long pageSize) {
         long oneBasedPage  = resolvePage(page);
         long zeroBasedPage = oneBasedPage -1 ;
         long size = resolvePageSize(pageSize);
