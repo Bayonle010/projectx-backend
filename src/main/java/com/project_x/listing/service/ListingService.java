@@ -18,4 +18,9 @@ public interface ListingService {
             UUID listingId,
             AuthenticationIdentity authenticationIdentity
     );
+
+    ListingResponse archiveProperty(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    );
 }

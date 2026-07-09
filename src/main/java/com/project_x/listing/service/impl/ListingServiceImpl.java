@@ -114,6 +114,27 @@ public class ListingServiceImpl implements ListingService {
         return listingResponseBuilder.toResponse(listing);
     }
 
+    @Override
+    @Transactional
+    public ListingResponse archiveProperty(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    ) {
+        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+
+        Listing listing = listingRepository.findByIdAndOwnerId(
+                listingId,
+                owner.getId()
+        ).orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
+        if (listing.getStatus() != ListingStatus.ARCHIVED) {
+            listing.setStatus(ListingStatus.ARCHIVED);
+            listing = listingRepository.save(listing);
+        }
+
+        return listingResponseBuilder.toResponse(listing);
+    }
+
 
     private void attachImages(Listing listing, List<ImageRequest> images) {
         for (int i = 0; i < images.size(); i++) {

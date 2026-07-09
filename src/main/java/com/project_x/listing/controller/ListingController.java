@@ -89,4 +89,25 @@ public class ListingController {
                 )
         );
     }
+
+    @PatchMapping("/{listingId}/archive")
+    public ResponseEntity<ApiResponse> archiveProperty(
+            @PathVariable UUID listingId,
+            @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity authenticationIdentity
+    ) {
+        ListingResponse response = listingService.archiveProperty(
+                listingId,
+                authenticationIdentity
+        );
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        0,
+                        "Listing archived",
+                        "Listing archived successfully",
+                        response,
+                        null
+                )
+        );
+    }
 }
