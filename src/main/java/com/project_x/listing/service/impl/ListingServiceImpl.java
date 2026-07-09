@@ -98,6 +98,22 @@ public class ListingServiceImpl implements ListingService {
         return listings.map(listingResponseBuilder::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public ListingResponse fetchListingById(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    ) {
+        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+
+        Listing listing = listingRepository.findByIdAndOwnerId(
+                listingId,
+                owner.getId()
+        ).orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
+        return listingResponseBuilder.toResponse(listing);
+    }
+
 
     private void attachImages(Listing listing, List<ImageRequest> images) {
         for (int i = 0; i < images.size(); i++) {

@@ -13,4 +13,9 @@ public interface ListingService {
     ListingResponse submitForReview(UUID listingId, AuthenticationIdentity authenticationIdentity);
 
     Page<ListingResponse> fetchListings(String status, Long page, Long pageSize, AuthenticationIdentity authenticationIdentity);
+
+    ListingResponse fetchListingById(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    );
 }

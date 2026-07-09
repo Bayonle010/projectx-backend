@@ -68,4 +68,25 @@ public class ListingController {
                 )
         );
     }
+
+    @GetMapping("/{listingId}")
+    public ResponseEntity<ApiResponse> fetchPropertyById(
+            @PathVariable UUID listingId,
+            @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity authenticationIdentity
+    ) {
+        ListingResponse response = listingService.fetchListingById(
+                listingId,
+                authenticationIdentity
+        );
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        0,
+                        "Listing fetched",
+                        "Listing fetched successfully",
+                        response,
+                        null
+                )
+        );
+    }
 }
