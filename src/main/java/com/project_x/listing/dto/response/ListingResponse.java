@@ -53,6 +53,7 @@ public record ListingResponse(
 
         BigDecimal rentAmount,
         RentPaymentFrequency rentPaymentFrequency,
+        ListingStatus status,
 
         BigDecimal agencyFee,
         BigDecimal legalAgreementFee,

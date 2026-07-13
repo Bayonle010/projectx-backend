@@ -67,6 +67,7 @@ public class ListingResponseBuilder {
                 .cautionFee(listing.getCautionFee())
                 .serviceCharge(listing.getServiceCharge())
                 .proofOfOwnershipUrl(listing.getProofOfOwnershipUrl())
+                .status(listing.getStatus())
                 .amenities(
                         listing.getAmenities().stream()
                                 .map(Amenity::getName)
