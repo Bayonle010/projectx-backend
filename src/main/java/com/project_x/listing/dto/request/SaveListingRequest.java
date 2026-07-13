@@ -17,7 +17,9 @@ public record SaveListingRequest(
 
         ListingRelationshipType relationshipType,
 
-        PropertyType propertyType,
+        UUID propertyTypeId,
+
+
 
         @Min(0)
         Integer bedroomCount,
@@ -35,7 +37,7 @@ public record SaveListingRequest(
 
         String description,
 
-        WaterSource waterSource,
+        UUID waterSourceId,
 
         Boolean parkingAvailable,
 
