@@ -104,7 +104,7 @@ public class PropertyTypeController {
         );
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id}/archive")
     public ResponseEntity<ApiResponse> archivePropertyType(
             @PathVariable UUID id
     ) {
