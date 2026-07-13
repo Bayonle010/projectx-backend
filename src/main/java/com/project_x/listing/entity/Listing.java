@@ -118,6 +118,20 @@ public class Listing {
     )
     private Set<Amenity> amenities = new HashSet<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "property_type_id",
+            foreignKey = @ForeignKey(name = "fk_listing_property_type")
+    )
+    private PropertyType propertyType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "water_source_id",
+            foreignKey = @ForeignKey(name = "fk_listing_water_source")
+    )
+    private WaterSource waterSource;
+
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingImage> images = new ArrayList<>();
 
