@@ -16,14 +16,36 @@ public class ListingResponseBuilder {
         return ListingResponse.builder()
                 .id(listing.getId())
                 .relationshipType(listing.getRelationshipType())
-                .propertyType(listing.getPropertyType())
+
+                .propertyTypeId(
+                        listing.getPropertyType() != null
+                                ? listing.getPropertyType().getId()
+                                : null
+                )
+                .propertyTypeName(
+                        listing.getPropertyType() != null
+                                ? listing.getPropertyType().getName()
+                                : null
+                )
+
                 .bedroomCount(listing.getBedroomCount())
                 .bathroomCount(listing.getBathroomCount())
                 .toiletCount(listing.getToiletCount())
                 .propertyCondition(listing.getPropertyCondition())
                 .unitCount(listing.getUnitCount())
                 .description(listing.getDescription())
-                .waterSource(listing.getWaterSource())
+
+                .waterSourceId(
+                        listing.getWaterSource() != null
+                                ? listing.getWaterSource().getId()
+                                : null
+                )
+                .waterSourceName(
+                        listing.getWaterSource() != null
+                                ? listing.getWaterSource().getName()
+                                : null
+                )
+
                 .parkingAvailable(listing.getParkingAvailable())
                 .fencedOrGated(listing.getFencedOrGated())
                 .renovated(listing.getRenovated())
