@@ -16,6 +16,7 @@ import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingRepository;
+import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.ListingService;
 import com.project_x.listing.validation.ListingValidator;
 import com.project_x.user.entity.User;
@@ -36,42 +37,78 @@ public class ListingServiceImpl implements ListingService {
     private final UserService userService;
     private final ListingResponseBuilder listingResponseBuilder;
     private final LocationService locationService;
+    private final ListingReferenceResolver listingReferenceResolver;
 
     @Override
     @Transactional
-    public ListingResponse save(SaveListingRequest request, AuthenticationIdentity auth) {
-
-        User owner = userService.fetchAuthenticatedUser(auth);
+    public ListingResponse save(
+            SaveListingRequest request,
+            AuthenticationIdentity authenticationIdentity
+    ) {
+        User owner = userService.fetchAuthenticatedUser(
+                authenticationIdentity
+        );
 
         Listing listing = request.id() == null
                 ? createNewDraft(owner)
-                : listingRepository.findByIdAndOwnerId(request.id(), owner.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+                : listingRepository.findByIdAndOwnerId(
+                request.id(),
+                owner.getId()
+        ).orElseThrow(() ->
+                      new ResourceNotFoundException("Listing not found")
+        );
+
+        if (listing.getStatus() != ListingStatus.DRAFT) {
+            throw new BadRequestException(
+                    "Only draft listings can be edited"
+            );
+        }
 
         listingValidator.validateForDraftSave(request);
 
         applyChanges(listing, request);
 
-        Listing saved = listingRepository.save(listing);
-        return listingResponseBuilder.toResponse(saved);
+        Listing savedListing = listingRepository.save(listing);
+
+        return listingResponseBuilder.toResponse(savedListing);
     }
 
     @Override
-    public ListingResponse submitForReview(UUID listingId, AuthenticationIdentity authenticationIdentity) {
-        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+    @Transactional
+    public ListingResponse submitForReview(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    ) {
+        User owner = userService.fetchAuthenticatedUser(
+                authenticationIdentity
+        );
 
-        Listing listing = listingRepository.findWithDetailsByIdAndOwnerId(listingId, owner.getId())
-                .orElseThrow(()-> new ResourceNotFoundException("Listing not found"));
+        Listing listing = listingRepository
+                .findWithDetailsByIdAndOwnerId(
+                        listingId,
+                        owner.getId()
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Listing not found")
+                );
 
-        if (listing.getStatus() != ListingStatus.DRAFT){
-            throw new BadRequestException("Only draft listings can be submitted for review");
+        if (listing.getStatus() != ListingStatus.DRAFT) {
+            throw new BadRequestException(
+                    "Only draft listings can be submitted for review"
+            );
         }
 
+        /*
+         * This is where property type and water source
+         * become mandatory.
+         */
         listingValidator.validateForSubmission(listing);
 
         listing.setStatus(ListingStatus.UNDER_REVIEW);
 
-        return listingResponseBuilder.toResponse(listing);
+        Listing savedListing = listingRepository.save(listing);
+
+        return listingResponseBuilder.toResponse(savedListing);
     }
 
     @Transactional(readOnly = true)
@@ -171,13 +208,22 @@ public class ListingServiceImpl implements ListingService {
     }
 
 
-    private void applyChanges(Listing listing, SaveListingRequest request) {
+    private void applyChanges(
+            Listing listing,
+            SaveListingRequest request
+    ) {
         if (request.relationshipType() != null) {
-            listing.setRelationshipType(request.relationshipType());
+            listing.setRelationshipType(
+                    request.relationshipType()
+            );
         }
 
-        if (request.propertyType() != null) {
-            listing.setPropertyType(request.propertyType());
+        if (request.propertyTypeId() != null) {
+            listing.setPropertyType(
+                    listingReferenceResolver.resolvePropertyType(
+                            request.propertyTypeId()
+                    )
+            );
         }
 
         if (request.bedroomCount() != null) {
@@ -193,7 +239,9 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.propertyCondition() != null) {
-            listing.setPropertyCondition(request.propertyCondition());
+            listing.setPropertyCondition(
+                    request.propertyCondition()
+            );
         }
 
         if (request.unitCount() != null) {
@@ -201,19 +249,29 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.description() != null) {
-            listing.setDescription(request.description().trim());
+            listing.setDescription(
+                    request.description().trim()
+            );
         }
 
-        if (request.waterSource() != null) {
-            listing.setWaterSource(request.waterSource());
+        if (request.waterSourceId() != null) {
+            listing.setWaterSource(
+                    listingReferenceResolver.resolveWaterSource(
+                            request.waterSourceId()
+                    )
+            );
         }
 
         if (request.parkingAvailable() != null) {
-            listing.setParkingAvailable(request.parkingAvailable());
+            listing.setParkingAvailable(
+                    request.parkingAvailable()
+            );
         }
 
         if (request.fencedOrGated() != null) {
-            listing.setFencedOrGated(request.fencedOrGated());
+            listing.setFencedOrGated(
+                    request.fencedOrGated()
+            );
         }
 
         if (request.renovated() != null) {
@@ -221,29 +279,47 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.furnishingStatus() != null) {
-            listing.setFurnishingStatus(request.furnishingStatus());
+            listing.setFurnishingStatus(
+                    request.furnishingStatus()
+            );
         }
 
         if (request.stateId() != null) {
-            State state = locationService.findState(request.stateId());
+            State state = locationService.findState(
+                    request.stateId()
+            );
+
             listing.setState(state);
         }
 
         if (request.lgaId() != null) {
-            Lga lga = locationService.findLga(request.lgaId());
+            Lga lga = locationService.findLga(
+                    request.lgaId()
+            );
+
             listing.setLga(lga);
         }
 
-        if (listing.getState() != null && listing.getLga() != null) {
-            listingValidator.validateLgaBelongsToState(listing.getLga(), listing.getState());
+        if (
+                listing.getState() != null
+                        && listing.getLga() != null
+        ) {
+            listingValidator.validateLgaBelongsToState(
+                    listing.getLga(),
+                    listing.getState()
+            );
         }
 
         if (request.addressLine() != null) {
-            listing.setAddressLine(request.addressLine().trim());
+            listing.setAddressLine(
+                    request.addressLine().trim()
+            );
         }
 
         if (request.landmark() != null) {
-            listing.setLandmark(request.landmark());
+            listing.setLandmark(
+                    request.landmark().trim()
+            );
         }
 
         if (request.latitude() != null) {
@@ -255,11 +331,15 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.placeId() != null) {
-            listing.setPlaceId(request.placeId());
+            listing.setPlaceId(
+                    request.placeId().trim()
+            );
         }
 
         if (request.shareAddressWithSeekers() != null) {
-            listing.setShareAddressWithSeekers(request.shareAddressWithSeekers());
+            listing.setShareAddressWithSeekers(
+                    request.shareAddressWithSeekers()
+            );
         }
 
         if (request.rentAmount() != null) {
@@ -267,7 +347,9 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.rentPaymentFrequency() != null) {
-            listing.setRentPaymentFrequency(request.rentPaymentFrequency());
+            listing.setRentPaymentFrequency(
+                    request.rentPaymentFrequency()
+            );
         }
 
         if (request.agencyFee() != null) {
@@ -275,7 +357,9 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.legalAgreementFee() != null) {
-            listing.setLegalAgreementFee(request.legalAgreementFee());
+            listing.setLegalAgreementFee(
+                    request.legalAgreementFee()
+            );
         }
 
         if (request.cautionFee() != null) {
@@ -283,23 +367,35 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.serviceCharge() != null) {
-            listing.setServiceCharge(request.serviceCharge());
+            listing.setServiceCharge(
+                    request.serviceCharge()
+            );
         }
 
         if (request.proofOfOwnershipUrl() != null) {
-            listing.setProofOfOwnershipUrl(request.proofOfOwnershipUrl().trim());
+            listing.setProofOfOwnershipUrl(
+                    request.proofOfOwnershipUrl().trim()
+            );
         }
 
         if (request.videoUrl() != null) {
-            listing.setVideoUrl(request.videoUrl().trim());
+            listing.setVideoUrl(
+                    request.videoUrl().trim()
+            );
         }
 
         if (request.videoPublicId() != null) {
-            listing.setVideoPublicId(request.videoPublicId());
+            listing.setVideoPublicId(
+                    request.videoPublicId().trim()
+            );
         }
 
         if (request.amenityIds() != null) {
-            Set<Amenity> amenities = listingValidator.resolveAmenities(request.amenityIds());
+            Set<Amenity> amenities =
+                    listingReferenceResolver.resolveAmenities(
+                            request.amenityIds()
+                    );
+
             listing.setAmenities(amenities);
         }
 
