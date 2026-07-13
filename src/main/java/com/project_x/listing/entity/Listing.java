@@ -30,10 +30,6 @@ public class Listing {
     @Column(nullable = true)
     private ListingRelationshipType relationshipType; // OWNER, AGENT
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = true, length = 50)
-    private PropertyType propertyType;
-
     @Column(nullable = true)
     private Integer bedroomCount; // 0 means studio
 
@@ -52,10 +48,6 @@ public class Listing {
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String description;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = true, length = 30)
-    private WaterSource waterSource;
 
     @Column(nullable = true)
     private Boolean parkingAvailable;
