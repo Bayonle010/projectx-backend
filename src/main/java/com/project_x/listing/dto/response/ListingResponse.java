@@ -15,7 +15,7 @@ public record ListingResponse(
         UUID id,
 
         ListingRelationshipType relationshipType,
-        PropertyType propertyType,
+        UUID propertyTypeId,
 
         Integer bedroomCount,
         Integer bathroomCount,
@@ -26,7 +26,7 @@ public record ListingResponse(
 
         String description,
 
-        WaterSource waterSource,
+        UUID waterSourceId,
 
         Boolean parkingAvailable,
         Boolean fencedOrGated,
