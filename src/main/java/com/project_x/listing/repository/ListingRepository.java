@@ -68,4 +68,6 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
             ListingStatus status,
             Pageable pageable
     );
+
+    boolean existsByPropertyType_Id(UUID propertyTypeId);
 }

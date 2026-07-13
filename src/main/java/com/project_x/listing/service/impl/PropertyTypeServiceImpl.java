@@ -7,6 +7,7 @@ import com.project_x.listing.dto.request.CreatePropertyTypeRequest;
 import com.project_x.listing.dto.request.UpdatePropertyTypeRequest;
 import com.project_x.listing.dto.response.PropertyTypeResponse;
 import com.project_x.listing.entity.PropertyType;
+import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.repository.PropertyTypeRepository;
 import com.project_x.listing.service.PropertyTypeService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class PropertyTypeServiceImpl
         implements PropertyTypeService {
 
     private final PropertyTypeRepository propertyTypeRepository;
+    private final ListingRepository listingRepository;
 
     @Override
     @Transactional
@@ -148,6 +150,34 @@ public class PropertyTypeServiceImpl
         }
 
         return PropertyTypeResponseBuilder.toResponse(propertyType);
+    }
+
+    @Override
+    @Transactional
+    public void deletePropertyType(UUID id) {
+        PropertyType propertyType = propertyTypeRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Property type not found"
+                        )
+                );
+
+        if (propertyType.isActive()) {
+            throw new BadRequestException(
+                    "Property type must be archived before it can be permanently deleted"
+            );
+        }
+
+        boolean usedByListing =
+                listingRepository.existsByPropertyType_Id(id);
+
+        if (usedByListing) {
+            throw new BadRequestException(
+                    "Property type cannot be permanently deleted because it is used by one or more listings"
+            );
+        }
+
+        propertyTypeRepository.delete(propertyType);
     }
 
     private PropertyType findPropertyType(UUID id) {

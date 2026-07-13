@@ -104,7 +104,7 @@ public class PropertyTypeController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse> archivePropertyType(
             @PathVariable UUID id
     ) {
@@ -135,6 +135,23 @@ public class PropertyTypeController {
                         "Property type restored",
                         "Property type restored successfully",
                         response,
+                        ""
+                )
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deletePropertyType(
+            @PathVariable UUID id
+    ) {
+        propertyTypeService.deletePropertyType(id);
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        0,
+                        "Property type deleted",
+                        "Property type permanently deleted successfully",
+                        null,
                         ""
                 )
         );

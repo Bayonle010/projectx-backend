@@ -27,4 +27,6 @@ public interface PropertyTypeService {
     PropertyTypeResponse archivePropertyType(UUID id);
 
     PropertyTypeResponse restorePropertyType(UUID id);
+
+    void deletePropertyType(UUID id);
 }
