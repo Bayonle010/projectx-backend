@@ -10,30 +10,62 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ListingRepository extends JpaRepository<Listing,UUID> {
-    Optional<Listing> findByIdAndOwnerId(UUID id, UUID ownerId);
+public interface ListingRepository extends JpaRepository<Listing, UUID> {
 
-    @EntityGraph(attributePaths = {"state", "lga", "amenities", "images", "owner"})
-    Optional<Listing> findWithDetailsByIdAndOwnerId(UUID id, UUID ownerId);
-
-    Optional<Listing> findByIdAndOwnerIdAndStatus(
+    @EntityGraph(attributePaths = {
+            "state",
+            "lga",
+            "amenities",
+            "images",
+            "owner",
+            "propertyType",
+            "waterSource"
+    })
+    Optional<Listing> findByIdAndOwnerId(
             UUID id,
-            UUID ownerId,
-            ListingStatus status
+            UUID ownerId
     );
 
-    @EntityGraph(attributePaths = {"state", "lga", "amenities", "images", "owner"})
+    @EntityGraph(attributePaths = {
+            "state",
+            "lga",
+            "amenities",
+            "images",
+            "owner",
+            "propertyType",
+            "waterSource"
+    })
+    Optional<Listing> findWithDetailsByIdAndOwnerId(
+            UUID id,
+            UUID ownerId
+    );
+
+    @EntityGraph(attributePaths = {
+            "state",
+            "lga",
+            "amenities",
+            "images",
+            "owner",
+            "propertyType",
+            "waterSource"
+    })
     Page<Listing> findByOwnerId(
             UUID ownerId,
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"state", "lga", "amenities", "images", "owner"})
+    @EntityGraph(attributePaths = {
+            "state",
+            "lga",
+            "amenities",
+            "images",
+            "owner",
+            "propertyType",
+            "waterSource"
+    })
     Page<Listing> findByOwnerIdAndStatus(
             UUID ownerId,
             ListingStatus status,
             Pageable pageable
     );
-
-
 }
