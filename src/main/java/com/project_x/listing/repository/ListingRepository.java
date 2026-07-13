@@ -70,4 +70,6 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
     );
 
     boolean existsByPropertyType_Id(UUID propertyTypeId);
+
+    boolean existsByWaterSource_Id(UUID waterSourceId);
 }
