@@ -4,16 +4,11 @@ import com.project_x.listing.entity.Listing;
 import com.project_x.review.enums.ReviewStatus;
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -27,20 +22,12 @@ import java.util.UUID;
         },
         indexes = {
                 @Index(
-                        name = "idx_property_review_listing",
-                        columnList = "listing_id"
+                        name = "idx_property_review_listing_status_created",
+                        columnList = "listing_id, status, created_at"
                 ),
                 @Index(
                         name = "idx_property_review_reviewer",
                         columnList = "reviewer_id"
-                ),
-                @Index(
-                        name = "idx_property_review_listing_created_at",
-                        columnList = "listing_id, created_at"
-                ),
-                @Index(
-                        name = "idx_property_review_status",
-                        columnList = "status"
                 )
         }
 )
@@ -55,9 +42,6 @@ public class PropertyReview {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    /**
-     * Property being reviewed.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "listing_id",
@@ -66,9 +50,6 @@ public class PropertyReview {
     )
     private Listing listing;
 
-    /**
-     * User who submitted the review.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "reviewer_id",
@@ -77,41 +58,21 @@ public class PropertyReview {
     )
     private User reviewer;
 
-    /**
-     * Main star rating displayed on the review card.
-     */
-    @Min(1)
-    @Max(5)
     @Column(name = "overall_rating", nullable = false)
     private Integer overallRating;
 
-    /**
-     * Ratings used for the rating breakdown in the UI.
-     */
-    @Min(1)
-    @Max(5)
     @Column(name = "cleanliness_rating", nullable = false)
     private Integer cleanlinessRating;
 
-    @Min(1)
-    @Max(5)
     @Column(name = "communication_rating", nullable = false)
     private Integer communicationRating;
 
-    @Min(1)
-    @Max(5)
     @Column(name = "accuracy_rating", nullable = false)
     private Integer accuracyRating;
 
-    @Min(1)
-    @Max(5)
     @Column(name = "value_for_money_rating", nullable = false)
     private Integer valueForMoneyRating;
 
-    /**
-     * Written review is optional.
-     */
-    @Size(max = 5000)
     @Column(name = "review_text", columnDefinition = "TEXT")
     private String reviewText;
 
@@ -120,27 +81,11 @@ public class PropertyReview {
     @Builder.Default
     private ReviewStatus status = ReviewStatus.ACTIVE;
 
-    /**
-     * Comments made under this review.
+    /*
+     * Prevents one update from silently overwriting another update.
      */
-    @OneToMany(
-            mappedBy = "review",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @Builder.Default
-    private List<ReviewComment> comments = new ArrayList<>();
-
-    /**
-     * Users who liked this review.
-     */
-    @OneToMany(
-            mappedBy = "review",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @Builder.Default
-    private List<ReviewLike> likes = new ArrayList<>();
+    @Version
+    private Long version;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -3,8 +3,6 @@ package com.project_x.review.entity;
 import com.project_x.review.enums.ReviewCommentStatus;
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -17,16 +15,12 @@ import java.util.UUID;
         name = "review_comments",
         indexes = {
                 @Index(
-                        name = "idx_review_comment_review",
-                        columnList = "review_id"
+                        name = "idx_review_comment_review_status_created",
+                        columnList = "review_id, status, created_at"
                 ),
                 @Index(
                         name = "idx_review_comment_author",
                         columnList = "author_id"
-                ),
-                @Index(
-                        name = "idx_review_comment_review_created_at",
-                        columnList = "review_id, created_at"
                 )
         }
 )
@@ -41,9 +35,6 @@ public class ReviewComment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    /**
-     * Review this comment belongs to.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "review_id",
@@ -52,9 +43,6 @@ public class ReviewComment {
     )
     private PropertyReview review;
 
-    /**
-     * User who wrote the comment.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "author_id",
@@ -63,8 +51,6 @@ public class ReviewComment {
     )
     private User author;
 
-    @NotBlank
-    @Size(max = 3000)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
@@ -72,6 +58,9 @@ public class ReviewComment {
     @Column(nullable = false, length = 30)
     @Builder.Default
     private ReviewCommentStatus status = ReviewCommentStatus.ACTIVE;
+
+    @Version
+    private Long version;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
