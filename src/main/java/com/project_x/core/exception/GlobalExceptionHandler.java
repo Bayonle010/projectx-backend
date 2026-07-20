@@ -95,6 +95,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiResponse> handleConflictException(ConflictException ex){
+        log.error("Conflict {}", ex.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.CONFLICT.value(),  ex.getMessage(), "conflict exist",null);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
