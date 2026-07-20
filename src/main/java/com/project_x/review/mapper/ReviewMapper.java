@@ -94,7 +94,7 @@ public class ReviewMapper {
     }
 
     private String buildDisplayName(User user) {
-      
+
         return Stream.of(
                         user.getFirstname(),
                         user.getLastname()
