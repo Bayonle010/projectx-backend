@@ -171,4 +171,20 @@ public class GlobalExceptionHandler {
                 )
         );
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse> handleUnexpectedException(Exception ex) {
+        log.error("An unexpected error occurred while processing the request", ex);
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal server error",
+                "An unexpected error occurred while processing the request",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
+    }
 }
