@@ -27,7 +27,7 @@ public record ListingResponse(
 
         String description,
 
-        List<WaterSourceResponse> waterSources,
+        List<ListingWaterSourceResponse> waterSources,
 
         Boolean parkingAvailable,
         Boolean fencedOrGated,
@@ -63,7 +63,7 @@ public record ListingResponse(
 
         String proofOfOwnershipUrl,
 
-        Set<AmenitiesResponse> amenities,
+        Set<ListingAmenityResponse> amenities,
 
         List<ImageResponse> images,
 

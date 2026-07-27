@@ -2,11 +2,7 @@ package com.project_x.listing.builder;
 
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
-import com.project_x.listing.dto.response.AmenitiesResponse;
-import com.project_x.listing.dto.response.ImageResponse;
-import com.project_x.listing.dto.response.ListingResponse;
-import com.project_x.listing.dto.response.WaterSourceResponse;
-import com.project_x.listing.entity.Amenity;
+import com.project_x.listing.dto.response.*;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.entity.PropertyType;
@@ -16,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -133,7 +130,7 @@ public class ListingResponseBuilder {
                 .build();
     }
 
-    private List<WaterSourceResponse> toWaterSourceResponses(
+    private List<ListingWaterSourceResponse> toWaterSourceResponses(
             Listing listing
     ) {
         Set<WaterSource> waterSources = listing.getWaterSources();
@@ -143,11 +140,11 @@ public class ListingResponseBuilder {
         }
 
         return waterSources.stream()
-                .filter(waterSource -> waterSource != null)
+                .filter(Objects::nonNull)
                 .map(this::toWaterSourceResponse)
                 .sorted(
                         Comparator.comparing(
-                                WaterSourceResponse::name,
+                                ListingWaterSourceResponse::name,
                                 Comparator.nullsLast(
                                         String.CASE_INSENSITIVE_ORDER
                                 )
@@ -156,16 +153,18 @@ public class ListingResponseBuilder {
                 .toList();
     }
 
-    private WaterSourceResponse toWaterSourceResponse(
+
+    private ListingWaterSourceResponse toWaterSourceResponse(
             WaterSource waterSource
     ) {
-        return WaterSourceResponse.builder()
+        return ListingWaterSourceResponse.builder()
                 .id(waterSource.getId())
                 .name(waterSource.getName())
+                .code(waterSource.getCode())
                 .build();
     }
 
-    private Set<AmenitiesResponse> toAmenityResponses(
+    private Set<ListingAmenityResponse> toAmenityResponses(
             Listing listing
     ) {
         if (
@@ -177,13 +176,9 @@ public class ListingResponseBuilder {
 
         return listing.getAmenities()
                 .stream()
-                .filter(amenity -> amenity != null)
-                .filter(amenity ->
-                        amenity.getId() != null
-                                && amenity.getName() != null
-                )
+                .filter(Objects::nonNull)
                 .map(amenity ->
-                        AmenitiesResponse.builder()
+                        ListingAmenityResponse.builder()
                                 .id(amenity.getId())
                                 .name(amenity.getName())
                                 .build()
