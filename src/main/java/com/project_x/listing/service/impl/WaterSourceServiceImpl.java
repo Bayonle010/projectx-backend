@@ -167,7 +167,7 @@ public class WaterSourceServiceImpl
         }
 
         boolean usedByListing =
-                listingRepository.existsByWaterSource_Id(id);
+                listingRepository.existsByWaterSources_Id(id);
 
         if (usedByListing) {
             throw new BadRequestException(

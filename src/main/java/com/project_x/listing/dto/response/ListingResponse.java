@@ -27,8 +27,7 @@ public record ListingResponse(
 
         String description,
 
-        UUID waterSourceId,
-        String waterSourceName,
+        List<WaterSourceResponse> waterSources,
 
         Boolean parkingAvailable,
         Boolean fencedOrGated,

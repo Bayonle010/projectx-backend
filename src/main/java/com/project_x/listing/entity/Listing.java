@@ -125,12 +125,31 @@ public class Listing {
     )
     private PropertyType propertyType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "water_source_id",
-            foreignKey = @ForeignKey(name = "fk_listing_water_source")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "listing_water_sources",
+            joinColumns = @JoinColumn(
+                    name = "listing_id",
+                    foreignKey = @ForeignKey(
+                            name = "fk_listing_water_sources_listing"
+                    )
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "water_source_id",
+                    foreignKey = @ForeignKey(
+                            name = "fk_listing_water_sources_water_source"
+                    )
+            ),
+            uniqueConstraints = @UniqueConstraint(
+                    name = "uk_listing_water_source",
+                    columnNames = {
+                            "listing_id",
+                            "water_source_id"
+                    }
+            )
     )
-    private WaterSource waterSource;
+    @Builder.Default
+    private Set<WaterSource> waterSources = new HashSet<>();
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingImage> images = new ArrayList<>();

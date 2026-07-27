@@ -4,6 +4,7 @@ import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
 import com.project_x.listing.dto.response.ImageResponse;
 import com.project_x.listing.dto.response.ListingResponse;
+import com.project_x.listing.dto.response.WaterSourceResponse;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
@@ -12,6 +13,7 @@ import com.project_x.listing.entity.WaterSource;
 import com.project_x.user.entity.User;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,7 +27,6 @@ public class ListingResponseBuilder {
         }
 
         PropertyType propertyType = listing.getPropertyType();
-        WaterSource waterSource = listing.getWaterSource();
         State state = listing.getState();
         Lga lga = listing.getLga();
         User owner = listing.getOwner();
@@ -52,15 +53,8 @@ public class ListingResponseBuilder {
                 .unitCount(listing.getUnitCount())
                 .description(listing.getDescription())
 
-                .waterSourceId(
-                        waterSource != null
-                                ? waterSource.getId()
-                                : null
-                )
-                .waterSourceName(
-                        waterSource != null
-                                ? waterSource.getName()
-                                : null
+                .waterSources(
+                        toWaterSourceResponses(listing)
                 )
 
                 .parkingAvailable(listing.getParkingAvailable())
@@ -115,9 +109,13 @@ public class ListingResponseBuilder {
                         listing.getProofOfOwnershipUrl()
                 )
 
-                .amenities(toAmenityNames(listing))
+                .amenities(
+                        toAmenityNames(listing)
+                )
 
-                .images(toImageResponses(listing))
+                .images(
+                        toImageResponses(listing)
+                )
 
                 .videoUrl(listing.getVideoUrl())
 
@@ -132,8 +130,43 @@ public class ListingResponseBuilder {
                 .build();
     }
 
+    private List<WaterSourceResponse> toWaterSourceResponses(
+            Listing listing
+    ) {
+        Set<WaterSource> waterSources = listing.getWaterSources();
+
+        if (waterSources == null || waterSources.isEmpty()) {
+            return List.of();
+        }
+
+        return waterSources.stream()
+                .filter(waterSource -> waterSource != null)
+                .map(this::toWaterSourceResponse)
+                .sorted(
+                        Comparator.comparing(
+                                WaterSourceResponse::name,
+                                Comparator.nullsLast(
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                        )
+                )
+                .toList();
+    }
+
+    private WaterSourceResponse toWaterSourceResponse(
+            WaterSource waterSource
+    ) {
+        return WaterSourceResponse.builder()
+                .id(waterSource.getId())
+                .name(waterSource.getName())
+                .build();
+    }
+
     private Set<String> toAmenityNames(Listing listing) {
-        if (listing.getAmenities() == null) {
+        if (
+                listing.getAmenities() == null
+                        || listing.getAmenities().isEmpty()
+        ) {
             return Set.of();
         }
 
@@ -145,23 +178,34 @@ public class ListingResponseBuilder {
                 .collect(Collectors.toSet());
     }
 
-    private List<ImageResponse> toImageResponses(Listing listing) {
-        if (listing.getImages() == null) {
+    private List<ImageResponse> toImageResponses(
+            Listing listing
+    ) {
+        if (
+                listing.getImages() == null
+                        || listing.getImages().isEmpty()
+        ) {
             return List.of();
         }
 
         return listing.getImages()
                 .stream()
                 .filter(image -> image != null)
+                .sorted(
+                        Comparator.comparing(
+                                ListingImage::getPosition,
+                                Comparator.nullsLast(
+                                        Comparator.naturalOrder()
+                                )
+                        )
+                )
                 .map(this::toImageResponse)
                 .toList();
     }
 
-    private ImageResponse toImageResponse(ListingImage image) {
-        if (image == null) {
-            return null;
-        }
-
+    private ImageResponse toImageResponse(
+            ListingImage image
+    ) {
         return ImageResponse.builder()
                 .url(image.getUrl())
                 .position(image.getPosition())

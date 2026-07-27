@@ -1,5 +1,6 @@
 package com.project_x.listing.resolver;
 
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.entity.PropertyType;
@@ -60,5 +61,37 @@ public class ListingReferenceResolver {
         }
 
         return new HashSet<>(amenities);
+    }
+
+    public Set<WaterSource> resolveWaterSources(
+            Set<UUID> waterSourceIds
+    ) {
+        if (waterSourceIds == null || waterSourceIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        if (waterSourceIds.contains(null)) {
+            throw new BadRequestException(
+                    "Water source IDs cannot contain null values"
+            );
+        }
+
+        List<WaterSource> waterSources =
+                waterSourceRepository.findAllById(waterSourceIds);
+
+        Set<UUID> foundIds = waterSources.stream()
+                .map(WaterSource::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> missingIds = new HashSet<>(waterSourceIds);
+        missingIds.removeAll(foundIds);
+
+        if (!missingIds.isEmpty()) {
+            throw new BadRequestException(
+                    "One or more selected water sources do not exist"
+            );
+        }
+
+        return new HashSet<>(waterSources);
     }
 }

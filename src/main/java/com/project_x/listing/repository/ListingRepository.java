@@ -10,7 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ListingRepository extends JpaRepository<Listing, UUID> {
+public interface ListingRepository
+        extends JpaRepository<Listing, UUID> {
 
     @EntityGraph(attributePaths = {
             "state",
@@ -19,7 +20,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
             "images",
             "owner",
             "propertyType",
-            "waterSource"
+            "waterSources"
     })
     Optional<Listing> findByIdAndOwnerId(
             UUID id,
@@ -33,7 +34,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
             "images",
             "owner",
             "propertyType",
-            "waterSource"
+            "waterSources"
     })
     Optional<Listing> findWithDetailsByIdAndOwnerId(
             UUID id,
@@ -47,7 +48,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
             "images",
             "owner",
             "propertyType",
-            "waterSource"
+            "waterSources"
     })
     Page<Listing> findByOwnerId(
             UUID ownerId,
@@ -61,7 +62,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
             "images",
             "owner",
             "propertyType",
-            "waterSource"
+            "waterSources"
     })
     Page<Listing> findByOwnerIdAndStatus(
             UUID ownerId,
@@ -71,7 +72,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
 
     boolean existsByPropertyType_Id(UUID propertyTypeId);
 
-    boolean existsByWaterSource_Id(UUID waterSourceId);
+    boolean existsByWaterSources_Id(UUID waterSourceId);
 
     long countByOwner_Id(UUID ownerId);
 

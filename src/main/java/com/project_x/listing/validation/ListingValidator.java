@@ -85,14 +85,25 @@ public class ListingValidator {
         validateDescription(listing.getDescription());
 
         require(
-                listing.getWaterSource() != null,
-                "Water source is required"
+                listing.getWaterSources() != null
+                        && !listing.getWaterSources().isEmpty(),
+                "At least one water source is required"
         );
 
-        if (listing.getWaterSource() != null) {
+        if (
+                listing.getWaterSources() != null
+                        && !listing.getWaterSources().isEmpty()
+        ) {
+            boolean hasInactiveWaterSource =
+                    listing.getWaterSources().stream()
+                            .anyMatch(waterSource ->
+                                    waterSource == null
+                                            || !waterSource.isActive()
+                            );
+
             require(
-                    listing.getWaterSource().isActive(),
-                    "Selected water source is no longer available"
+                    !hasInactiveWaterSource,
+                    "One or more selected water sources are no longer available"
             );
         }
 

@@ -14,6 +14,7 @@ import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
+import com.project_x.listing.entity.WaterSource;
 import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.resolver.ListingReferenceResolver;
@@ -41,7 +42,7 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     @Transactional
-    public ListingResponse save(
+    public ListingResponse  save(
             SaveListingRequest request,
             AuthenticationIdentity authenticationIdentity
     ) {
@@ -203,6 +204,7 @@ public class ListingServiceImpl implements ListingService {
                 .owner(owner)
                 .status(ListingStatus.DRAFT)
                 .amenities(new HashSet<>())
+                .waterSources(new HashSet<>())
                 .images(new ArrayList<>())
                 .build();
     }
@@ -254,12 +256,14 @@ public class ListingServiceImpl implements ListingService {
             );
         }
 
-        if (request.waterSourceId() != null) {
-            listing.setWaterSource(
-                    listingReferenceResolver.resolveWaterSource(
-                            request.waterSourceId()
-                    )
-            );
+        if (request.waterSourceIds() != null) {
+            Set<WaterSource> resolvedWaterSources =
+                    listingReferenceResolver.resolveWaterSources(
+                            request.waterSourceIds()
+                    );
+
+            listing.getWaterSources().clear();
+            listing.getWaterSources().addAll(resolvedWaterSources);
         }
 
         if (request.parkingAvailable() != null) {

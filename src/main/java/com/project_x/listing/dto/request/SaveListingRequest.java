@@ -37,7 +37,7 @@ public record SaveListingRequest(
 
         String description,
 
-        UUID waterSourceId,
+        Set<UUID> waterSourceIds,
 
         Boolean parkingAvailable,
 
