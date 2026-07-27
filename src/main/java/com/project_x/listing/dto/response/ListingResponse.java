@@ -63,7 +63,7 @@ public record ListingResponse(
 
         String proofOfOwnershipUrl,
 
-        Set<String> amenities,
+        Set<AmenitiesResponse> amenities,
 
         List<ImageResponse> images,
 

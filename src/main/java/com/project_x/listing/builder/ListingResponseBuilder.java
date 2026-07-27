@@ -2,6 +2,7 @@ package com.project_x.listing.builder;
 
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
+import com.project_x.listing.dto.response.AmenitiesResponse;
 import com.project_x.listing.dto.response.ImageResponse;
 import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.dto.response.WaterSourceResponse;
@@ -112,7 +113,7 @@ public class ListingResponseBuilder {
                 )
 
                 .amenities(
-                        toAmenityNames(listing)
+                        toAmenityResponses(listing)
                 )
 
                 .images(
@@ -164,7 +165,9 @@ public class ListingResponseBuilder {
                 .build();
     }
 
-    private Set<String> toAmenityNames(Listing listing) {
+    private Set<AmenitiesResponse> toAmenityResponses(
+            Listing listing
+    ) {
         if (
                 listing.getAmenities() == null
                         || listing.getAmenities().isEmpty()
@@ -175,8 +178,16 @@ public class ListingResponseBuilder {
         return listing.getAmenities()
                 .stream()
                 .filter(amenity -> amenity != null)
-                .map(Amenity::getName)
-                .filter(name -> name != null)
+                .filter(amenity ->
+                        amenity.getId() != null
+                                && amenity.getName() != null
+                )
+                .map(amenity ->
+                        AmenitiesResponse.builder()
+                                .id(amenity.getId())
+                                .name(amenity.getName())
+                                .build()
+                )
                 .collect(Collectors.toSet());
     }
 
