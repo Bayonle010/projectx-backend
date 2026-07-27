@@ -41,6 +41,8 @@ public record ListingResponse(
         UUID lgaId,
         String lgaName,
 
+        String neighbourhood,
+
         String addressLine,
         String landmark,
 

@@ -73,6 +73,9 @@ public class Listing {
     @Column(nullable = true, length = 500)
     private String addressLine;
 
+    @Column(name = "neighbourhood", length = 150)
+    private String neighbourhood;
+
     @Column(length = 255)
     private String landmark;
 

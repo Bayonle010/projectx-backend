@@ -314,6 +314,16 @@ public class ListingServiceImpl implements ListingService {
             );
         }
 
+        if (request.neighbourhood() != null) {
+            String neighbourhood = request.neighbourhood().trim();
+
+            listing.setNeighbourhood(
+                    neighbourhood.isBlank()
+                            ? null
+                            : neighbourhood
+            );
+        }
+
         if (request.addressLine() != null) {
             listing.setAddressLine(
                     request.addressLine().trim()

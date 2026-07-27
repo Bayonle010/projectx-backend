@@ -51,6 +51,9 @@ public record SaveListingRequest(
 
         UUID lgaId,
 
+        @Size(max = 150)
+        String neighbourhood,
+
         String addressLine,
 
         String landmark,

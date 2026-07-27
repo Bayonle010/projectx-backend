@@ -84,6 +84,8 @@ public class ListingResponseBuilder {
                                 : null
                 )
 
+                .neighbourhood(listing.getNeighbourhood())
+
                 .addressLine(listing.getAddressLine())
                 .landmark(listing.getLandmark())
                 .latitude(listing.getLatitude())

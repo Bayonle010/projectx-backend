@@ -145,6 +145,11 @@ public class ListingValidator {
         }
 
         require(
+                !isBlank(listing.getNeighbourhood()),
+                "Area or neighbourhood is required"
+        );  
+
+        require(
                 !isBlank(listing.getAddressLine()),
                 "Address line is required"
         );
