@@ -110,7 +110,6 @@ public class OtpServiceImpl implements OtpService {
         }
 
         Otp otp = optionalOtp.get();
-        logger.info("otp is {}", otp.getToken());
 
 
         if (!otp.getOtpEvent().equals(expectedEvent)) {
