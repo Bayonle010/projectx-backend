@@ -1,9 +1,9 @@
 package com.project_x.review.policy;
 
+import com.project_x.core.exception.AccessDeniedException;
 import com.project_x.core.exception.BadRequestException;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.enums.ListingStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
