@@ -216,7 +216,9 @@ public class ListingResponseBuilder {
     ) {
         return ImageResponse.builder()
                 .url(image.getUrl())
+                .publicId(image.getPublicId())
                 .position(image.getPosition())
+                .format(image.getFormat())
                 .build();
     }
 }
