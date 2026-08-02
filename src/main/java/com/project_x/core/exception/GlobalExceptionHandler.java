@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import tools.jackson.databind.exc.MismatchedInputException;
 
@@ -317,6 +318,28 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse> handleNoResourceFound(
+            NoResourceFoundException ex
+    ) {
+        log.warn(
+                "Endpoint not found: {} {}",
+                ex.getHttpMethod(),
+                ex.getResourcePath()
+        );
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.NOT_FOUND.value(),
+                "The requested endpoint does not exist",
+                "Resource not found",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(errorResponse);
     }
 
