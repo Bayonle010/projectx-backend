@@ -6,6 +6,7 @@ import lombok.Builder;
 public record ImageResponse(
         String url,
         Integer position,
-        String publicId
+        String publicId,
+        String format
 ) {
 }
