@@ -72,34 +72,34 @@ public interface PropertyReviewRepository
 
     @Query(
             value = """
-                    SELECT
-                        listing.id AS listingId,
-                        listing.addressLine AS address,
-                        COUNT(review.id) AS totalReviews,
-                        COALESCE(AVG(review.overallRating), 0.0) AS averageRating
-                    FROM Listing listing
-                    LEFT JOIN PropertyReview review
-                        ON review.listing = listing
-                        AND review.status = :reviewStatus
-                    WHERE listing.owner.id = :ownerId
-                      AND (
-                          :search IS NULL
-                          OR LOWER(listing.addressLine)
-                             LIKE LOWER(CONCAT('%', :search, '%'))
-                      )
-                    GROUP BY listing.id, listing.addressLine, listing.createdAt
-                    ORDER BY listing.createdAt DESC
-                    """,
+                SELECT
+                    listing.id AS listingId,
+                    listing.addressLine AS address,
+                    COUNT(review.id) AS totalReviews,
+                    COALESCE(AVG(review.overallRating), 0.0) AS averageRating
+                FROM Listing listing
+                LEFT JOIN PropertyReview review
+                    ON review.listing = listing
+                    AND review.status = :reviewStatus
+                WHERE listing.owner.id = :ownerId
+                  AND (
+                      :search = ''
+                      OR LOWER(listing.addressLine)
+                         LIKE CONCAT('%', LOWER(:search), '%')
+                  )
+                GROUP BY listing.id, listing.addressLine, listing.createdAt
+                ORDER BY listing.createdAt DESC
+                """,
             countQuery = """
-                    SELECT COUNT(listing.id)
-                    FROM Listing listing
-                    WHERE listing.owner.id = :ownerId
-                      AND (
-                          :search IS NULL
-                          OR LOWER(listing.addressLine)
-                             LIKE LOWER(CONCAT('%', :search, '%'))
-                      )
-                    """
+                SELECT COUNT(listing.id)
+                FROM Listing listing
+                WHERE listing.owner.id = :ownerId
+                  AND (
+                      :search = ''
+                      OR LOWER(listing.addressLine)
+                         LIKE CONCAT('%', LOWER(:search), '%')
+                  )
+                """
     )
     Page<OwnerPropertyReviewProjection> findOwnerPropertyReviewSummary(
             @Param("ownerId") UUID ownerId,
