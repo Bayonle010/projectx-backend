@@ -354,7 +354,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse errorResponse = ResponseUtil.error(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal server error",
+                "Something went wrong",
                 "An unexpected error occurred while processing the request",
                 null
         );
