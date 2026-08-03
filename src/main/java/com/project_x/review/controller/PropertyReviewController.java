@@ -56,7 +56,7 @@ public class PropertyReviewController {
     public ResponseEntity<ApiResponse> getListingReviews(
             @PathVariable UUID listingId,
             @RequestParam(defaultValue = "0") Long page,
-            @RequestParam(defaultValue = "10") Long pageSize,
+            @RequestParam(defaultValue = "20") Long pageSize,
             @RequestAttribute("AUTH_IDENTITY")
             AuthenticationIdentity auth
     ) {
