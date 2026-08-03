@@ -192,7 +192,7 @@ public class PropertyReviewQueryServiceImpl
 
         String normalizedSearch =
                 search == null || search.isBlank()
-                        ? null
+                        ? ""
                         : search.trim();
 
         return reviewRepository
