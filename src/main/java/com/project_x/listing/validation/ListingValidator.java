@@ -206,13 +206,13 @@ public class ListingValidator {
     }
 
     private void validateDescription(String description) {
-        int count = wordCount(description);
-
-        log.info("Listing description word count: {}", count);
-
-        if (count < 100) {
+        int characterCount = description == null
+                ? 0
+                : description.trim().length();
+        
+        if (characterCount < 100) {
             throw new BadRequestException(
-                    "Description must be at least 100 words"
+                    "Description must be at least 100 characters"
             );
         }
     }
@@ -270,13 +270,6 @@ public class ListingValidator {
         }
     }
 
-    private int wordCount(String text) {
-        if (text == null || text.isBlank()) {
-            return 0;
-        }
-
-        return text.trim().split("\\s+").length;
-    }
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
