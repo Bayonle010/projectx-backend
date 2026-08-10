@@ -117,10 +117,6 @@ public class ListingValidator {
                 "Fenced or gated status is required"
         );
 
-        require(
-                listing.getRenovated() != null,
-                "Renovation status is required"
-        );
 
         require(
                 listing.getFurnishingStatus() != null,
@@ -209,7 +205,7 @@ public class ListingValidator {
         int characterCount = description == null
                 ? 0
                 : description.trim().length();
-        
+
         if (characterCount < 100) {
             throw new BadRequestException(
                     "Description must be at least 100 characters"
