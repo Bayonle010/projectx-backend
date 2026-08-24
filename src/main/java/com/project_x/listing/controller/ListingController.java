@@ -6,6 +6,7 @@ import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.dto.response.ListingResponse;
+import com.project_x.listing.dto.response.GeneratedListingDescriptionResponse;
 import com.project_x.listing.service.ListingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,25 @@ public class ListingController {
 
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "Listing submitted for review successfully","" , response, "")
+        );
+    }
+
+    @PostMapping("/{listingId}/description/generate")
+    public ResponseEntity<ApiResponse> generateDescription(
+            @PathVariable UUID listingId,
+            @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
+    ) {
+        GeneratedListingDescriptionResponse response =
+                listingService.generateDescription(listingId, auth);
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        0,
+                        "Description generated",
+                        "Review and save the generated description",
+                        response,
+                        null
+                )
         );
     }
 
