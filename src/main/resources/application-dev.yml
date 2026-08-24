@@ -80,3 +80,5 @@ openai:
   api-key: ${OPENAI_API_KEY:}
   model: ${OPENAI_MODEL:gpt-4o-mini}
   max-output-tokens: ${OPENAI_MAX_OUTPUT_TOKENS:350}
+  connect-timeout-ms: ${OPENAI_CONNECT_TIMEOUT_MS:10000}
+  response-timeout-ms: ${OPENAI_RESPONSE_TIMEOUT_MS:120000}
