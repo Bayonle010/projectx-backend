@@ -11,6 +11,7 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import org.springframework.util.StringUtils;
 
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
@@ -59,11 +60,34 @@ public class RestClientConfig {
     public RestClient zeptoMailRestClient(RestClient.Builder builder,
                                           @Value("${zeptomail.base-url}") String baseUrl,
                                           @Value("${zeptomail.token}") String token) {
-        return builder
+        return builder.clone()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .requestInterceptor((request, body, execution) -> {
                     request.getHeaders().set(HttpHeaders.AUTHORIZATION, token);
+                    return execution.execute(request, body);
+                })
+                .build();
+    }
+
+    @Bean
+    @Qualifier("openAiRestClient")
+    public RestClient openAiRestClient(
+            RestClient.Builder builder,
+            @Value("${openai.base-url:https://api.openai.com/v1}") String baseUrl,
+            @Value("${openai.api-key:}") String apiKey
+    ) {
+        return builder.clone()
+                .baseUrl(baseUrl)
+                .defaultHeader(
+                        HttpHeaders.CONTENT_TYPE,
+                        MediaType.APPLICATION_JSON_VALUE
+                )
+                .requestInterceptor((request, body, execution) -> {
+                    if (StringUtils.hasText(apiKey)) {
+                        request.getHeaders().setBearerAuth(apiKey.trim());
+                    }
+
                     return execution.execute(request, body);
                 })
                 .build();

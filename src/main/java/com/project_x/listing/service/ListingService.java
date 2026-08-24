@@ -3,6 +3,7 @@ package com.project_x.listing.service;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.dto.response.ListingResponse;
+import com.project_x.listing.dto.response.GeneratedListingDescriptionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -11,6 +12,11 @@ import java.util.UUID;
 public interface ListingService {
     ListingResponse save(SaveListingRequest request, AuthenticationIdentity auth);
     ListingResponse submitForReview(UUID listingId, AuthenticationIdentity authenticationIdentity);
+
+    GeneratedListingDescriptionResponse generateDescription(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    );
 
     Page<ListingResponse> fetchListings(String status, Long page, Long pageSize, AuthenticationIdentity authenticationIdentity);
 

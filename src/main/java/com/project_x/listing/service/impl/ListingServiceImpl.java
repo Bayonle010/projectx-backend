@@ -11,6 +11,7 @@ import com.project_x.listing.builder.ListingResponseBuilder;
 import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.dto.request.ImageRequest;
 import com.project_x.listing.dto.response.ListingResponse;
+import com.project_x.listing.dto.response.GeneratedListingDescriptionResponse;
 import com.project_x.listing.entity.Amenity;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
@@ -19,6 +20,7 @@ import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.ListingService;
+import com.project_x.listing.service.ListingDescriptionGenerator;
 import com.project_x.listing.validation.ListingValidator;
 import com.project_x.user.entity.User;
 import com.project_x.user.service.UserService;
@@ -39,6 +41,7 @@ public class ListingServiceImpl implements ListingService {
     private final ListingResponseBuilder listingResponseBuilder;
     private final LocationService locationService;
     private final ListingReferenceResolver listingReferenceResolver;
+    private final ListingDescriptionGenerator listingDescriptionGenerator;
 
     @Override
     @Transactional
@@ -110,6 +113,33 @@ public class ListingServiceImpl implements ListingService {
         Listing savedListing = listingRepository.save(listing);
 
         return listingResponseBuilder.toResponse(savedListing);
+    }
+
+    @Override
+    public GeneratedListingDescriptionResponse generateDescription(
+            UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    ) {
+        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+
+        Listing listing = listingRepository
+                .findWithDetailsByIdAndOwnerId(listingId, owner.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Listing not found")
+                );
+
+        if (listing.getStatus() != ListingStatus.DRAFT) {
+            throw new BadRequestException(
+                    "Descriptions can only be generated for draft listings"
+            );
+        }
+
+        String description = listingDescriptionGenerator.generate(listing);
+
+        return new GeneratedListingDescriptionResponse(
+                listing.getId(),
+                description
+        );
     }
 
     @Transactional(readOnly = true)

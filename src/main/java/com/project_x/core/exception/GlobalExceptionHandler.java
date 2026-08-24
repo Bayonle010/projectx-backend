@@ -170,6 +170,24 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(AiDescriptionGenerationException.class)
+    public ResponseEntity<ApiResponse> handleAiDescriptionGenerationException(
+            AiDescriptionGenerationException ex
+    ) {
+        log.error("AI description generation failed: {}", ex.getMessage(), ex);
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Description generation is temporarily unavailable",
+                "Please try again shortly",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse> handleResourceNotFound(
             ResourceNotFoundException ex
