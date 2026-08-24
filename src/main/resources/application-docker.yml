@@ -73,3 +73,9 @@ cloudinary:
     secret: ${CLOUDINARY_API_SECRET}
   cloud:
     name: ${CLOUDINARY_CLOUD_NAME}
+
+openai:
+  base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+  api-key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:gpt-4o-mini}
+  max-output-tokens: ${OPENAI_MAX_OUTPUT_TOKENS:350}
