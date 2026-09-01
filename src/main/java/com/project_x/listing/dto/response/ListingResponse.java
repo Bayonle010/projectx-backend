@@ -13,6 +13,7 @@ import java.util.UUID;
 public record ListingResponse(
 
         UUID id,
+        String friendlyId,
 
         ListingRelationshipType relationshipType,
         UUID propertyTypeId,

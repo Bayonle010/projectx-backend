@@ -64,6 +64,10 @@ spring:
 
 app:
   base-url: ${APP_BASE_URL}
+
+  listing:
+    friendly-id-prefix: ${LISTING_FRIENDLY_ID_PREFIX:PIL}
+
   cors:
     allowed-origins: "*"
     allow-credentials: false

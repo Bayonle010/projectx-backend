@@ -31,6 +31,7 @@ public class ListingResponseBuilder {
 
         return ListingResponse.builder()
                 .id(listing.getId())
+                .friendlyId(listing.getFriendlyId())
                 .relationshipType(listing.getRelationshipType())
 
                 .propertyTypeId(
