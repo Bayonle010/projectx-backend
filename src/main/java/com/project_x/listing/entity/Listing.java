@@ -26,6 +26,9 @@ public class Listing {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "friendly_id", length = 20, updatable = false)
+    private String friendlyId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private ListingRelationshipType relationshipType; // OWNER, AGENT

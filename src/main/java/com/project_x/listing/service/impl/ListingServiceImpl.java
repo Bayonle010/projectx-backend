@@ -21,6 +21,7 @@ import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.ListingService;
 import com.project_x.listing.service.ListingDescriptionGenerator;
+import com.project_x.listing.service.ListingFriendlyIdGenerator;
 import com.project_x.listing.validation.ListingValidator;
 import com.project_x.user.entity.User;
 import com.project_x.user.service.UserService;
@@ -35,6 +36,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Service
 public class ListingServiceImpl implements ListingService {
+    private static final int FRIENDLY_ID_ALLOCATION_ATTEMPTS = 10;
+
     private final ListingRepository listingRepository;
     private final ListingValidator listingValidator;
     private final UserService userService;
@@ -42,6 +45,7 @@ public class ListingServiceImpl implements ListingService {
     private final LocationService locationService;
     private final ListingReferenceResolver listingReferenceResolver;
     private final ListingDescriptionGenerator listingDescriptionGenerator;
+    private final ListingFriendlyIdGenerator listingFriendlyIdGenerator;
 
     @Override
     @Transactional
@@ -230,13 +234,27 @@ public class ListingServiceImpl implements ListingService {
     }
 
     private Listing createNewDraft(User owner) {
-        return Listing.builder()
-                .owner(owner)
-                .status(ListingStatus.DRAFT)
-                .amenities(new HashSet<>())
-                .waterSources(new HashSet<>())
-                .images(new ArrayList<>())
-                .build();
+        for (int attempt = 0; attempt < FRIENDLY_ID_ALLOCATION_ATTEMPTS; attempt++) {
+            UUID listingId = UUID.randomUUID();
+            String friendlyId = listingFriendlyIdGenerator.generate();
+
+            if (listingRepository.insertNewDraft(
+                    listingId,
+                    friendlyId,
+                    owner.getId()
+            ) == 1) {
+                return listingRepository.findByIdAndOwnerId(
+                        listingId,
+                        owner.getId()
+                ).orElseThrow(() ->
+                        new IllegalStateException("Created listing could not be loaded")
+                );
+            }
+        }
+
+        throw new IllegalStateException(
+                "Could not allocate a unique listing reference"
+        );
     }
 
 
