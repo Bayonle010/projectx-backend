@@ -173,8 +173,8 @@ public class ListingValidator {
 
         require(
                 listing.getImages() != null
-                        && listing.getImages().size() >= 6,
-                "At least 6 property images are required"
+                        && listing.getImages().size() == 9,
+                "Exactly 9 property images are required"
         );
 
         if (listing.getImages() != null) {
