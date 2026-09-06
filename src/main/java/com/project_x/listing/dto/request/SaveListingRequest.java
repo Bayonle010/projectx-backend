@@ -80,7 +80,6 @@ public record SaveListingRequest(
 
         Set<UUID> amenityIds,
 
-        @Size(min = 6)
         List<@Valid ImageRequest> images,
 
         String videoUrl,
