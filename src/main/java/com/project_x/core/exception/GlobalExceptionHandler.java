@@ -188,6 +188,24 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleSpringSecurityAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException ex
+    ) {
+        log.warn("Spring Security access denied: {}", ex.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.FORBIDDEN.value(),
+                "You do not have permission to access this resource",
+                "Access denied",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse> handleResourceNotFound(
             ResourceNotFoundException ex
