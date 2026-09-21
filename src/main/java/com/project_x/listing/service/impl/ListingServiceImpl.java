@@ -4,6 +4,9 @@ import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.security.model.AuthenticationIdentity;
+import com.project_x.file.MediaKind;
+import com.project_x.file.entity.MediaAsset;
+import com.project_x.file.service.MediaAssetService;
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
 import com.project_x.adress.service.LocationService;
@@ -46,6 +49,7 @@ public class ListingServiceImpl implements ListingService {
     private final ListingReferenceResolver listingReferenceResolver;
     private final ListingDescriptionGenerator listingDescriptionGenerator;
     private final ListingFriendlyIdGenerator listingFriendlyIdGenerator;
+    private final MediaAssetService mediaAssetService;
 
     @Override
     @Transactional
@@ -74,7 +78,7 @@ public class ListingServiceImpl implements ListingService {
 
         listingValidator.validateForDraftSave(request);
 
-        applyChanges(listing, request);
+        applyChanges(listing, request, owner.getId());
 
         Listing savedListing = listingRepository.save(listing);
 
@@ -208,16 +212,18 @@ public class ListingServiceImpl implements ListingService {
     }
 
 
-    private void attachImages(Listing listing, List<ImageRequest> images) {
+    private void attachImages(Listing listing, List<ImageRequest> images, UUID ownerId) {
         for (int i = 0; i < images.size(); i++) {
             ImageRequest imageRequest = images.get(i);
+            MediaAsset ownedImage = mediaAssetService.requireOwnedReady(
+                    ownerId, imageRequest.publicId(), MediaKind.IMAGE);
 
             ListingImage image = ListingImage.builder()
                     .listing(listing)
-                    .publicId(imageRequest.publicId())
-                    .url(imageRequest.optimizedUrl())
-                    .resourceType(imageRequest.resourceType())
-                    .format(imageRequest.format())
+                    .publicId(ownedImage.getPublicId())
+                    .url(ownedImage.getOptimizedUrl())
+                    .resourceType(ownedImage.getKind().resourceType())
+                    .format(ownedImage.getFormat())
                     .position(i)
                     .build();
 
@@ -260,7 +266,8 @@ public class ListingServiceImpl implements ListingService {
 
     private void applyChanges(
             Listing listing,
-            SaveListingRequest request
+            SaveListingRequest request,
+            UUID ownerId
     ) {
         if (request.relationshipType() != null) {
             listing.setRelationshipType(
@@ -435,21 +442,23 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.proofOfOwnershipUrl() != null) {
-            listing.setProofOfOwnershipUrl(
-                    request.proofOfOwnershipUrl().trim()
-            );
-        }
-
-        if (request.videoUrl() != null) {
-            listing.setVideoUrl(
-                    request.videoUrl().trim()
-            );
+            String url = request.proofOfOwnershipUrl().trim();
+            listing.setProofOfOwnershipUrl(url.isEmpty() ? null
+                    : mediaAssetService.requireOwnedDocumentUrl(ownerId, url).getOriginalUrl());
         }
 
         if (request.videoPublicId() != null) {
-            listing.setVideoPublicId(
-                    request.videoPublicId().trim()
-            );
+            String publicId = request.videoPublicId().trim();
+            if (publicId.isEmpty()) {
+                listing.setVideoPublicId(null);
+                listing.setVideoUrl(null);
+            } else {
+                MediaAsset video = mediaAssetService.requireOwnedReady(ownerId, publicId, MediaKind.VIDEO);
+                listing.setVideoPublicId(video.getPublicId());
+                listing.setVideoUrl(video.getOriginalUrl());
+            }
+        } else if (request.videoUrl() != null && !request.videoUrl().isBlank()) {
+            throw new BadRequestException("videoPublicId is required when setting a video");
         }
 
         if (request.amenityIds() != null) {
@@ -463,7 +472,7 @@ public class ListingServiceImpl implements ListingService {
 
         if (request.images() != null) {
             listing.getImages().clear();
-            attachImages(listing, request.images());
+            attachImages(listing, request.images(), ownerId);
         }
     }
 
