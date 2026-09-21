@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface MediaAssetRepository extends JpaRepository<MediaAsset, UUID> {
+    Optional<MediaAsset> findByOwnerIdAndIdempotencyKey(UUID ownerId, UUID idempotencyKey);
     Optional<MediaAsset> findByPublicIdAndOwnerId(String publicId, UUID ownerId);
     Optional<MediaAsset> findByOriginalUrlAndOwnerId(String originalUrl, UUID ownerId);
 }

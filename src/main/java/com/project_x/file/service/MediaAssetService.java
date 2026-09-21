@@ -4,9 +4,11 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.project_x.core.exception.BadRequestException;
+import com.project_x.core.exception.ConflictException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.file.MediaKind;
 import com.project_x.file.MediaStatus;
+import com.project_x.file.UploadIdempotency;
 import com.project_x.file.dto.DirectUploadAuthorization;
 import com.project_x.file.dto.FileUploadResponse;
 import com.project_x.file.entity.MediaAsset;
@@ -16,6 +18,7 @@ import com.project_x.listing.repository.ListingRepository;
 import com.project_x.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,9 @@ public class MediaAssetService {
     private static final Set<String> IMAGE_FORMATS = Set.of("jpg", "jpeg", "png", "webp");
     private static final Set<String> DOCUMENT_FORMATS = Set.of("pdf", "doc", "docx", "xls", "xlsx", "txt");
 
+    public record Reservation(MediaAsset asset, boolean created) {
+    }
+
     private final Cloudinary cloudinary;
     private final MediaAssetRepository mediaAssetRepository;
     private final ListingRepository listingRepository;
@@ -49,16 +55,29 @@ public class MediaAssetService {
 
     @Transactional
     public DirectUploadAuthorization authorize(AuthenticationIdentity auth, MediaKind kind,
-                                                String folder, String fileName) {
-        return authorize(ownerId(auth), kind, folder, fileName);
+                                                String folder, String fileName, long fileSize,
+                                                String idempotencyKey) {
+        return authorize(ownerId(auth), kind, folder, fileName, fileSize, idempotencyKey);
     }
 
     @Transactional
-    public DirectUploadAuthorization authorize(UUID ownerId, MediaKind kind, String folder, String fileName) {
+    public DirectUploadAuthorization authorize(UUID ownerId, MediaKind kind, String folder, String fileName,
+                                                long fileSize, String idempotencyKey) {
         if (kind == MediaKind.VIDEO && (videoUploadPreset == null || videoUploadPreset.isBlank())) {
             throw new BadRequestException("Cloudinary video upload preset is not configured");
         }
-        MediaAsset asset = reserve(ownerId, kind, folder, fileName);
+        if (fileName == null || fileName.isBlank()) {
+            throw new BadRequestException("fileName is required");
+        }
+        if (fileSize <= 0 || fileSize > maximumBytes(kind)) {
+            throw new BadRequestException("File size exceeds allowed limit");
+        }
+
+        UUID parsedIdempotencyKey = UploadIdempotency.parseKey(idempotencyKey);
+        String fingerprint = UploadIdempotency.fingerprint(
+                "DIRECT", kind.name(), folder, fileName.trim(), Long.toString(fileSize));
+        MediaAsset asset = reserve(ownerId, kind, folder, fileName,
+                parsedIdempotencyKey, fingerprint).asset();
         long timestamp = Instant.now().getEpochSecond();
         String overwrite = "false";
 
@@ -90,25 +109,51 @@ public class MediaAssetService {
     }
 
     @Transactional
-    public MediaAsset reserve(AuthenticationIdentity auth, MediaKind kind, String folder, String fileName) {
-        return reserve(ownerId(auth), kind, folder, fileName);
+    public Reservation reserve(AuthenticationIdentity auth, MediaKind kind, String folder, String fileName,
+                               String idempotencyKey, String requestFingerprint) {
+        return reserve(ownerId(auth), kind, folder, fileName,
+                UploadIdempotency.parseKey(idempotencyKey), requestFingerprint);
     }
 
     @Transactional
-    public MediaAsset reserve(UUID ownerId, MediaKind kind, String folder, String fileName) {
+    public Reservation reserve(UUID ownerId, MediaKind kind, String folder, String fileName,
+                               UUID idempotencyKey, String requestFingerprint) {
         if (folder == null || !folder.matches("[A-Za-z0-9_-]{1,50}(?:/[A-Za-z0-9_-]{1,50}){0,3}")) {
             throw new BadRequestException("Folder must use up to four safe path segments");
         }
+        if (requestFingerprint == null || !requestFingerprint.matches("[a-f0-9]{64}")) {
+            throw new BadRequestException("Invalid upload request fingerprint");
+        }
+
+        String extension = kind == MediaKind.DOCUMENT ? documentExtension(fileName) : "";
+        var existing = mediaAssetRepository.findByOwnerIdAndIdempotencyKey(ownerId, idempotencyKey);
+        if (existing.isPresent()) {
+            MediaAsset asset = existing.get();
+            if (!requestFingerprint.equals(asset.getRequestFingerprint())) {
+                throw new ConflictException("Idempotency-Key was already used for a different upload");
+            }
+            if (asset.getStatus() == MediaStatus.REJECTED) {
+                throw new ConflictException("This upload attempt was rejected; use a new Idempotency-Key");
+            }
+            return new Reservation(asset, false);
+        }
+
         MediaAsset asset = new MediaAsset();
         asset.setId(UUID.randomUUID());
         asset.setOwnerId(ownerId);
+        asset.setIdempotencyKey(idempotencyKey);
+        asset.setRequestFingerprint(requestFingerprint);
         asset.setKind(kind);
         asset.setStatus(MediaStatus.PENDING);
-        String extension = kind == MediaKind.DOCUMENT ? documentExtension(fileName) : "";
         String safeFolder = "f-" + folder.replace("/", "/f-");
         asset.setPublicId("projectx/users/" + ownerId + "/" + kind.name().toLowerCase(Locale.ROOT)
                 + "/" + safeFolder + "/" + asset.getId() + extension);
-        return mediaAssetRepository.save(asset);
+        try {
+            return new Reservation(mediaAssetRepository.saveAndFlush(asset), true);
+        } catch (DataIntegrityViolationException exception) {
+            throw new ConflictException(
+                    "An upload with this Idempotency-Key is already being processed; retry the request");
+        }
     }
 
     @Transactional(noRollbackFor = BadRequestException.class)
@@ -152,6 +197,15 @@ public class MediaAssetService {
             throw new BadRequestException("Upload is not pending");
         }
         return markReady(asset, uploadResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public FileUploadResponse readyResponse(AuthenticationIdentity auth, UUID mediaId) {
+        MediaAsset asset = pendingOwned(ownerId(auth), mediaId);
+        if (asset.getStatus() != MediaStatus.READY) {
+            throw new ConflictException("Upload is not ready");
+        }
+        return response(asset);
     }
 
     private FileUploadResponse markReady(MediaAsset asset, Map<?, ?> metadata) {

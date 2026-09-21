@@ -11,7 +11,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "media_assets", indexes = @Index(name = "idx_media_owner", columnList = "owner_id"))
+@Table(name = "media_assets", indexes = {
+        @Index(name = "idx_media_owner", columnList = "owner_id"),
+        @Index(name = "uk_media_owner_idempotency", columnList = "owner_id,idempotency_key", unique = true)
+})
 @Getter
 @Setter
 public class MediaAsset {
@@ -20,6 +23,12 @@ public class MediaAsset {
 
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
+
+    @Column(name = "idempotency_key")
+    private UUID idempotencyKey;
+
+    @Column(name = "request_fingerprint", length = 64)
+    private String requestFingerprint;
 
     @Column(name = "public_id", nullable = false, unique = true)
     private String publicId;

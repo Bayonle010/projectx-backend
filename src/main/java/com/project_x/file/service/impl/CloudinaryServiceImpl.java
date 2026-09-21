@@ -6,6 +6,8 @@ import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.file.FileValidationUtil;
 import com.project_x.file.MediaKind;
+import com.project_x.file.MediaStatus;
+import com.project_x.file.UploadIdempotency;
 import com.project_x.file.dto.FileUploadResponse;
 import com.project_x.file.service.FileService;
 import com.project_x.file.service.MediaAssetService;
@@ -31,21 +33,24 @@ public class CloudinaryServiceImpl implements FileService {
     }
 
     @Override
-    public FileUploadResponse uploadImage(MultipartFile file, String folderName, AuthenticationIdentity auth) {
+    public FileUploadResponse uploadImage(MultipartFile file, String folderName, String idempotencyKey,
+                                          AuthenticationIdentity auth) {
         FileValidationUtil.validateImage(file);
-        return upload(file, folderName, MediaKind.IMAGE, auth);
+        return upload(file, folderName, MediaKind.IMAGE, idempotencyKey, auth);
     }
 
     @Override
-    public FileUploadResponse uploadVideo(MultipartFile file, String folderName, AuthenticationIdentity auth) {
+    public FileUploadResponse uploadVideo(MultipartFile file, String folderName, String idempotencyKey,
+                                          AuthenticationIdentity auth) {
         FileValidationUtil.validateVideo(file);
-        return upload(file, folderName, MediaKind.VIDEO, auth);
+        return upload(file, folderName, MediaKind.VIDEO, idempotencyKey, auth);
     }
 
     @Override
-    public FileUploadResponse uploadDocument(MultipartFile file, String folderName, AuthenticationIdentity auth) {
+    public FileUploadResponse uploadDocument(MultipartFile file, String folderName, String idempotencyKey,
+                                             AuthenticationIdentity auth) {
         FileValidationUtil.validateDocument(file);
-        return upload(file, folderName, MediaKind.DOCUMENT, auth);
+        return upload(file, folderName, MediaKind.DOCUMENT, idempotencyKey, auth);
     }
 
     @Override
@@ -76,11 +81,33 @@ public class CloudinaryServiceImpl implements FileService {
 
 
     private FileUploadResponse upload(MultipartFile file, String folderName, MediaKind kind,
-                                      AuthenticationIdentity auth) {
-        var asset = mediaAssetService.reserve(auth, kind, folderName, file.getOriginalFilename());
+                                      String idempotencyKey, AuthenticationIdentity auth) {
+        byte[] fileBytes;
+        try {
+            fileBytes = file.getBytes();
+        } catch (IOException exception) {
+            throw new RuntimeException("Could not read uploaded file", exception);
+        }
+
+        String requestFingerprint = UploadIdempotency.fingerprint(
+                fileBytes,
+                "PROXY",
+                kind.name(),
+                folderName,
+                file.getOriginalFilename(),
+                file.getContentType(),
+                Long.toString(file.getSize())
+        );
+        var reservation = mediaAssetService.reserve(auth, kind, folderName, file.getOriginalFilename(),
+                idempotencyKey, requestFingerprint);
+        var asset = reservation.asset();
+        if (!reservation.created() && asset.getStatus() == MediaStatus.READY) {
+            return mediaAssetService.readyResponse(auth, asset.getId());
+        }
+
         try {
             Map<?, ?> result = cloudinary.uploader().upload(
-                    file.getBytes(),
+                    fileBytes,
                     ObjectUtils.asMap(
                             "public_id", asset.getPublicId(),
                             "resource_type", kind.resourceType(),
@@ -94,7 +121,12 @@ public class CloudinaryServiceImpl implements FileService {
             return mediaAssetService.completeFromUploadResponse(auth, asset.getId(), result);
         } catch (IOException e) {
             log.error("Cloudinary upload failed for folder={}", folderName, e);
-            throw new RuntimeException("File upload failed");
+            try {
+                return mediaAssetService.complete(auth, asset.getId());
+            } catch (BadRequestException incompleteUpload) {
+                e.addSuppressed(incompleteUpload);
+            }
+            throw new RuntimeException("File upload failed", e);
         }
     }
 }

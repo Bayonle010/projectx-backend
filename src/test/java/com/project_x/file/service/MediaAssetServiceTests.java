@@ -3,6 +3,7 @@ package com.project_x.file.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.project_x.core.exception.BadRequestException;
+import com.project_x.core.exception.ConflictException;
 import com.project_x.file.MediaKind;
 import com.project_x.file.MediaStatus;
 import com.project_x.file.entity.MediaAsset;
@@ -16,6 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,12 +38,14 @@ class MediaAssetServiceTests {
         ReflectionTestUtils.setField(service, "maxVideoBytes", 524288000L);
         ReflectionTestUtils.setField(service, "videoUploadPreset", "test-video-preset");
         when(assets.save(any(MediaAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(assets.saveAndFlush(any(MediaAsset.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
     void authorizationUsesUnpredictableUserScopedPublicId() {
         UUID owner = UUID.randomUUID();
-        var authorization = service.authorize(owner, MediaKind.VIDEO, "listings", null);
+        var authorization = service.authorize(owner, MediaKind.VIDEO, "listings", "tour.mp4",
+                100_000_000, UUID.randomUUID().toString());
 
         assertEquals("video", authorization.resourceType());
         assertEquals(360, authorization.maximumDurationSeconds());
@@ -51,24 +55,70 @@ class MediaAssetServiceTests {
         assertEquals("test-video-preset", authorization.uploadPreset());
         assertNotNull(authorization.signature());
         assertFalse(authorization.signature().isBlank());
-        verify(assets).save(any(MediaAsset.class));
+        verify(assets).saveAndFlush(any(MediaAsset.class));
     }
 
     @Test
     void refusesLargeVideoAuthorizationWithoutACloudinaryPreset() {
         ReflectionTestUtils.setField(service, "videoUploadPreset", "");
         assertThrows(BadRequestException.class, () -> service.authorize(
-                UUID.randomUUID(), MediaKind.VIDEO, "listings", null));
-        verify(assets, never()).save(any());
+                UUID.randomUUID(), MediaKind.VIDEO, "listings", "tour.mp4",
+                100_000_000, UUID.randomUUID().toString()));
+        verify(assets, never()).saveAndFlush(any());
     }
 
     @Test
     void rawDocumentPublicIdKeepsAValidatedExtension() {
         var authorization = service.authorize(UUID.randomUUID(), MediaKind.DOCUMENT,
-                "ownership", "deed.PDF");
+                "ownership", "deed.PDF", 1000, UUID.randomUUID().toString());
         assertTrue(authorization.publicId().endsWith(".pdf"));
         assertThrows(BadRequestException.class, () -> service.authorize(
-                UUID.randomUUID(), MediaKind.DOCUMENT, "ownership", "archive.exe"));
+                UUID.randomUUID(), MediaKind.DOCUMENT, "ownership", "archive.exe",
+                1000, UUID.randomUUID().toString()));
+    }
+
+    @Test
+    void repeatedAuthorizationReusesTheSameReservation() {
+        UUID owner = UUID.randomUUID();
+        String idempotencyKey = UUID.randomUUID().toString();
+        AtomicReference<MediaAsset> saved = new AtomicReference<>();
+        when(assets.findByOwnerIdAndIdempotencyKey(owner, UUID.fromString(idempotencyKey)))
+                .thenAnswer(invocation -> Optional.ofNullable(saved.get()));
+        when(assets.saveAndFlush(any(MediaAsset.class))).thenAnswer(invocation -> {
+            MediaAsset asset = invocation.getArgument(0);
+            saved.set(asset);
+            return asset;
+        });
+
+        var first = service.authorize(owner, MediaKind.VIDEO, "listings", "tour.mp4",
+                100_000_000, idempotencyKey);
+        var retry = service.authorize(owner, MediaKind.VIDEO, "listings", "tour.mp4",
+                100_000_000, idempotencyKey);
+
+        assertEquals(first.mediaId(), retry.mediaId());
+        assertEquals(first.publicId(), retry.publicId());
+        verify(assets, times(1)).saveAndFlush(any(MediaAsset.class));
+    }
+
+    @Test
+    void refusesIdempotencyKeyReuseForDifferentUpload() {
+        UUID owner = UUID.randomUUID();
+        String idempotencyKey = UUID.randomUUID().toString();
+        AtomicReference<MediaAsset> saved = new AtomicReference<>();
+        when(assets.findByOwnerIdAndIdempotencyKey(owner, UUID.fromString(idempotencyKey)))
+                .thenAnswer(invocation -> Optional.ofNullable(saved.get()));
+        when(assets.saveAndFlush(any(MediaAsset.class))).thenAnswer(invocation -> {
+            MediaAsset asset = invocation.getArgument(0);
+            saved.set(asset);
+            return asset;
+        });
+
+        service.authorize(owner, MediaKind.VIDEO, "listings", "tour.mp4",
+                100_000_000, idempotencyKey);
+
+        assertThrows(ConflictException.class, () -> service.authorize(
+                owner, MediaKind.VIDEO, "listings", "different.mp4",
+                120_000_000, idempotencyKey));
     }
 
     @Test

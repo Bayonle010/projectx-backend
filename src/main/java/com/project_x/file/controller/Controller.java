@@ -34,9 +34,10 @@ public class Controller {
     public ResponseEntity<ApiResponse> uploadImage(
             @RequestPart("file") MultipartFile file,
             @RequestParam("folder") String folderName,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
     ) {
-        FileUploadResponse response = fileService.uploadImage(file, folderName, auth);
+        FileUploadResponse response = fileService.uploadImage(file, folderName, idempotencyKey, auth);
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "Image uploaded successfully", "", response,  null)
         );
@@ -46,9 +47,10 @@ public class Controller {
     public ResponseEntity<ApiResponse> uploadVideo(
             @RequestPart("file") MultipartFile file,
             @RequestParam("folder") String folderName,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
     ) {
-        FileUploadResponse response = fileService.uploadVideo(file, folderName, auth);
+        FileUploadResponse response = fileService.uploadVideo(file, folderName, idempotencyKey, auth);
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "Video uploaded successfully","", response,null)
         );
@@ -58,9 +60,10 @@ public class Controller {
     public ResponseEntity<ApiResponse> uploadDocument(
             @RequestPart("file") MultipartFile file,
             @RequestParam("folder") String folderName,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth
     ) {
-        FileUploadResponse response = fileService.uploadDocument(file, folderName, auth);
+        FileUploadResponse response = fileService.uploadDocument(file, folderName, idempotencyKey, auth);
         return ResponseEntity.ok(
                 ResponseUtil.success(0, "File uploaded successfully","", response,null)
         );
@@ -78,7 +81,9 @@ public class Controller {
     @PostMapping("/direct/{kind}/authorize")
     public ResponseEntity<ApiResponse> authorizeDirectUpload(@PathVariable String kind,
                                                               @RequestParam("folder") String folder,
-                                                              @RequestParam(value = "fileName", required = false) String fileName,
+                                                              @RequestParam("fileName") String fileName,
+                                                              @RequestParam("fileSize") long fileSize,
+                                                              @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
                                                               @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth) {
         MediaKind mediaKind;
         try {
@@ -86,7 +91,8 @@ public class Controller {
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException("Unknown media kind");
         }
-        DirectUploadAuthorization authorization = mediaAssetService.authorize(auth, mediaKind, folder, fileName);
+        DirectUploadAuthorization authorization = mediaAssetService.authorize(
+                auth, mediaKind, folder, fileName, fileSize, idempotencyKey);
         return ResponseEntity.ok(ResponseUtil.success(0, "Upload authorized", "", authorization, null));
     }
 
