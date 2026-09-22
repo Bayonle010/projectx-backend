@@ -32,6 +32,10 @@ public class Amenity {
     @Column(name = "image_public_id")
     private String imagePublicId;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;

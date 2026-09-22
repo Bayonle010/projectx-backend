@@ -11,9 +11,13 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import tools.jackson.databind.exc.MismatchedInputException;
@@ -68,6 +72,93 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 errorMessage,
                 "Invalid value for field '" + fieldName + "'",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse> handleMissingRequestParameter(
+            MissingServletRequestParameterException ex
+    ) {
+        String parameterName = ex.getParameterName();
+
+        log.warn("Required request parameter '{}' is missing", parameterName);
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Required request parameter '" + parameterName + "' is missing",
+                "Missing request parameter",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ApiResponse> handleMissingRequestHeader(
+            MissingRequestHeaderException ex
+    ) {
+        String headerName = ex.getHeaderName();
+
+        log.warn("Required request header '{}' is missing", headerName);
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Required request header '" + headerName + "' is missing",
+                "Missing request header",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiResponse> handleMissingRequestPart(
+            MissingServletRequestPartException ex
+    ) {
+        String partName = ex.getRequestPartName();
+
+        log.warn("Required multipart field '{}' is missing", partName);
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Required multipart field '" + partName + "' is missing",
+                "Missing multipart field",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse> handleRequestParameterTypeMismatch(
+            MethodArgumentTypeMismatchException ex
+    ) {
+        String parameterName = ex.getName();
+        String expectedType = friendlyTypeName(ex.getRequiredType());
+
+        log.warn(
+                "Invalid value '{}' for request parameter '{}'; expected {}",
+                ex.getValue(),
+                parameterName,
+                expectedType
+        );
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid value for request parameter '" + parameterName
+                        + "'. Expected " + expectedType,
+                "Invalid request parameter",
                 null
         );
 
@@ -185,6 +276,24 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleSpringSecurityAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException ex
+    ) {
+        log.warn("Spring Security access denied: {}", ex.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.FORBIDDEN.value(),
+                "You do not have permission to access this resource",
+                "Access denied",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(errorResponse);
     }
 

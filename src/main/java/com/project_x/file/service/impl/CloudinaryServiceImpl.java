@@ -1,12 +1,16 @@
 package com.project_x.file.service.impl;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.project_x.core.exception.BadRequestException;
+import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.file.FileValidationUtil;
+import com.project_x.file.MediaKind;
+import com.project_x.file.MediaStatus;
+import com.project_x.file.UploadIdempotency;
 import com.project_x.file.dto.FileUploadResponse;
 import com.project_x.file.service.FileService;
+import com.project_x.file.service.MediaAssetService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,99 +23,83 @@ import java.util.Map;
 public class CloudinaryServiceImpl implements FileService {
 
     private final Cloudinary cloudinary;
+    private final MediaAssetService mediaAssetService;
 
     private static final Logger log = LoggerFactory.getLogger(CloudinaryServiceImpl.class);
 
-    public CloudinaryServiceImpl(Cloudinary cloudinary) {
+    public CloudinaryServiceImpl(Cloudinary cloudinary, MediaAssetService mediaAssetService) {
         this.cloudinary = cloudinary;
+        this.mediaAssetService = mediaAssetService;
     }
 
     @Override
-    public FileUploadResponse uploadImage(MultipartFile file, String folderName) {
+    public FileUploadResponse uploadImage(MultipartFile file, String folderName, String idempotencyKey,
+                                          AuthenticationIdentity auth) {
         FileValidationUtil.validateImage(file);
-        return upload(file, folderName, "image", true);
+        return upload(file, folderName, MediaKind.IMAGE, idempotencyKey, auth);
     }
 
     @Override
-    public FileUploadResponse uploadVideo(MultipartFile file, String folderName) {
+    public FileUploadResponse uploadVideo(MultipartFile file, String folderName, String idempotencyKey,
+                                          AuthenticationIdentity auth) {
         FileValidationUtil.validateVideo(file);
-        return upload(file, folderName, "video", false);
+        return upload(file, folderName, MediaKind.VIDEO, idempotencyKey, auth);
     }
 
     @Override
-    public FileUploadResponse uploadDocument(MultipartFile file, String folderName) {
+    public FileUploadResponse uploadDocument(MultipartFile file, String folderName, String idempotencyKey,
+                                             AuthenticationIdentity auth) {
         FileValidationUtil.validateDocument(file);
-        return upload(file, folderName, "raw", false);
+        return upload(file, folderName, MediaKind.DOCUMENT, idempotencyKey, auth);
     }
 
-    @Override
-    public void deleteFileByPublicId(String publicId, String resourceType) {
+    private FileUploadResponse upload(MultipartFile file, String folderName, MediaKind kind,
+                                      String idempotencyKey, AuthenticationIdentity auth) {
+        byte[] fileBytes;
         try {
-
-            log.info("Deleting file: publicId={}, resourceType={}", publicId, resourceType);
-
-            Map<?, ?> result = cloudinary.uploader().destroy(
-                    publicId,
-                    ObjectUtils.asMap("resource_type", resourceType)
-            );
-
-            log.info("Cloudinary delete result for publicId={}: {}", publicId, result);
-
-            Object deleteResult = result.get("result");
-
-
-            if (!"ok".equals(deleteResult) && !"not found".equals(deleteResult)) {
-                throw new BadRequestException("Failed to delete file from Cloudinary");
-            }
-
-        } catch (IOException e) {
-            log.error("Failed to delete file from Cloudinary. publicId={}", publicId, e);
-            throw new RuntimeException("Failed to delete file");
+            fileBytes = file.getBytes();
+        } catch (IOException exception) {
+            throw new RuntimeException("Could not read uploaded file", exception);
         }
-    }
 
+        String requestFingerprint = UploadIdempotency.fingerprint(
+                fileBytes,
+                "PROXY",
+                kind.name(),
+                folderName,
+                file.getOriginalFilename(),
+                file.getContentType(),
+                Long.toString(file.getSize())
+        );
+        var reservation = mediaAssetService.reserve(auth, kind, folderName, file.getOriginalFilename(),
+                idempotencyKey, requestFingerprint);
+        var asset = reservation.asset();
+        if (!reservation.created() && asset.getStatus() == MediaStatus.READY) {
+            return mediaAssetService.readyResponse(auth, asset.getId());
+        }
 
-    private FileUploadResponse upload(MultipartFile file, String folderName, String resourceType, boolean imageOptimized) {
         try {
-            Map<?, ?> uploadResult = cloudinary.uploader().upload(
-                    file.getBytes(),
+            Map<?, ?> result = cloudinary.uploader().upload(
+                    fileBytes,
                     ObjectUtils.asMap(
-                            "folder", folderName,
-                            "resource_type", resourceType,
-                            "use_filename", true,
-                            "unique_filename", true
+                            "public_id", asset.getPublicId(),
+                            "resource_type", kind.resourceType(),
+                            "filename", file.getOriginalFilename(),
+                            "overwrite", false
                     )
             );
-
-            String publicId = (String) uploadResult.get("public_id");
-            String secureUrl = (String) uploadResult.get("secure_url");
-            String format = (String) uploadResult.get("format");
-
-            String optimizedUrl = imageOptimized
-                    ? buildOptimizedImageUrl(publicId)
-                    : secureUrl;
-
-            return FileUploadResponse.builder()
-                    .publicId(publicId)
-                    .originalUrl(secureUrl)
-                    .optimizedUrl(optimizedUrl)
-                    .resourceType(resourceType)
-                    .format(format)
-                    .build();
-
-
+            if (kind == MediaKind.VIDEO && !(result.get("duration") instanceof Number)) {
+                return mediaAssetService.complete(auth, asset.getId());
+            }
+            return mediaAssetService.completeFromUploadResponse(auth, asset.getId(), result);
         } catch (IOException e) {
             log.error("Cloudinary upload failed for folder={}", folderName, e);
-            throw new RuntimeException("File upload failed");
+            try {
+                return mediaAssetService.complete(auth, asset.getId());
+            } catch (BadRequestException incompleteUpload) {
+                e.addSuppressed(incompleteUpload);
+            }
+            throw new RuntimeException("File upload failed", e);
         }
-    }
-
-    private String buildOptimizedImageUrl(String publicId) {
-        return cloudinary.url()
-                .secure(true)
-                .transformation(new Transformation()
-                        .fetchFormat("auto")
-                        .quality("auto"))
-                .generate(publicId);
     }
 }

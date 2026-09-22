@@ -21,15 +21,14 @@ public class RoleInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        logger.info("Seeding roles into database…");
+        logger.info("Seeding roles into database...");
 
         Arrays.stream(RoleType.values())
-                // prefix each enum name with “ROLE_”
-                .map(rt -> "ROLE_" + rt.name())
+                .map(RoleType::getAuthority)
                 .forEach(authority -> {
                     if (roleRepository.findByAuthority(authority).isEmpty()) {
                         roleRepository.save(new Role(authority));
-                        logger.info("  • created role {}", authority);
+                        logger.info("Created role {}", authority);
                     }
                 });
     }

@@ -16,7 +16,8 @@ public class FileValidationUtil {
     private static final Set<String> VIDEO_TYPES = Set.of(
             "video/mp4",
             "video/mpeg",
-            "video/quicktime"
+            "video/quicktime",
+            "video/webm"
     );
 
     private static final Set<String> DOCUMENT_TYPES = Set.of(
@@ -29,7 +30,8 @@ public class FileValidationUtil {
     );
 
     private static final long IMAGE_MAX_SIZE = 5 * 1024 * 1024;      // 5MB
-    private static final long VIDEO_MAX_SIZE = 50 * 1024 * 1024;     // 50MB
+    // The multipart route is deliberately only for small videos; larger videos upload directly.
+    private static final long VIDEO_MAX_SIZE = 10 * 1024 * 1024;
     private static final long DOCUMENT_MAX_SIZE = 10 * 1024 * 1024;  // 10MB
 
     public static void validateImage(MultipartFile file) {
@@ -39,7 +41,7 @@ public class FileValidationUtil {
 
     public static void validateVideo(MultipartFile file) {
         validate(file, VIDEO_TYPES, VIDEO_MAX_SIZE,
-                "Invalid video type. Allowed types: MP4, MPEG, MOV, AVI, WEBM");
+                "Invalid video type. Allowed types: MP4, MPEG, MOV, WEBM");
     }
 
     public static void validateDocument(MultipartFile file) {

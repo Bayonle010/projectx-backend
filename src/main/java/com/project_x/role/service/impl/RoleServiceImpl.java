@@ -44,6 +44,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Optional<Role> findByAuthority(String role) {
-        return roleRepository.findByAuthority("ROLE_USER");
+        return roleRepository.findByAuthority(role);
     }
 }

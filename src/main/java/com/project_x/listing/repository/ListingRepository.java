@@ -95,6 +95,10 @@ public interface ListingRepository
 
     boolean existsByPropertyType_Id(UUID propertyTypeId);
 
+    boolean existsByVideoPublicId(String videoPublicId);
+
+    boolean existsByProofOfOwnershipUrl(String proofOfOwnershipUrl);
+
     boolean existsByWaterSources_Id(UUID waterSourceId);
 
     long countByOwner_Id(UUID ownerId);

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,9 +40,18 @@ public class ListingReferenceResolver {
                 ));
     }
 
-    public Set<Amenity> resolveAmenities(Set<UUID> amenityIds) {
+    public Set<Amenity> resolveAmenities(
+            Set<UUID> amenityIds,
+            Set<Amenity> currentlySelectedAmenities
+    ) {
         if (amenityIds == null || amenityIds.isEmpty()) {
             return new HashSet<>();
+        }
+
+        if (amenityIds.stream().anyMatch(Objects::isNull)) {
+            throw new BadRequestException(
+                    "Amenity IDs cannot contain null values"
+            );
         }
 
         List<Amenity> amenities = amenityRepository.findAllByIdIn(amenityIds);
@@ -57,6 +67,24 @@ public class ListingReferenceResolver {
         if (!missingIds.isEmpty()) {
             throw new ResourceNotFoundException(
                     "Amenities not found: " + missingIds
+            );
+        }
+
+        Set<UUID> currentlySelectedIds = currentlySelectedAmenities == null
+                ? Set.of()
+                : currentlySelectedAmenities.stream()
+                .map(Amenity::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> unavailableIds = amenities.stream()
+                .filter(amenity -> !amenity.isActive())
+                .map(Amenity::getId)
+                .filter(id -> !currentlySelectedIds.contains(id))
+                .collect(Collectors.toSet());
+
+        if (!unavailableIds.isEmpty()) {
+            throw new BadRequestException(
+                    "Amenities are no longer available for selection: " + unavailableIds
             );
         }
 

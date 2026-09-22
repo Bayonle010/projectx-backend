@@ -4,8 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum RoleType {
-    HOUSER_SEEKER("ROLE_HOUSE_SEEKER"),
-    HOUSER_OWNER("ROLE_HOUSE_SEEKER"),
     USER("ROLE_USER"),
     ADMIN("ROLE_ADMIN"),
     SUPER_ADMIN("ROLE_SUPER_ADMIN");
