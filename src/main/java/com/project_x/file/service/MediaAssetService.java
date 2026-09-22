@@ -13,6 +13,7 @@ import com.project_x.file.dto.DirectUploadAuthorization;
 import com.project_x.file.dto.FileUploadResponse;
 import com.project_x.file.entity.MediaAsset;
 import com.project_x.file.repository.MediaAssetRepository;
+import com.project_x.listing.repository.AmenityRepository;
 import com.project_x.listing.repository.ListingImageRepository;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.user.service.UserService;
@@ -45,6 +46,8 @@ public class MediaAssetService {
     private final MediaAssetRepository mediaAssetRepository;
     private final ListingRepository listingRepository;
     private final ListingImageRepository listingImageRepository;
+    private final AmenityRepository amenityRepository;
+    private final MediaAssetUsageService mediaAssetUsageService;
     private final UserService userService;
 
     @Value("${app.media.max-video-bytes:524288000}")
@@ -250,6 +253,13 @@ public class MediaAssetService {
                 .orElseThrow(() -> new BadRequestException("Document does not belong to this user"));
     }
 
+    @Transactional(readOnly = true)
+    public UUID findIdByPublicId(String publicId) {
+        return mediaAssetRepository.findByPublicId(publicId)
+                .map(MediaAsset::getId)
+                .orElse(null);
+    }
+
     @Transactional
     public void deleteOwned(AuthenticationIdentity auth, String publicId, String resourceType) {
         deleteOwned(ownerId(auth), publicId, resourceType);
@@ -265,15 +275,53 @@ public class MediaAssetService {
         if (asset.getStatus() == MediaStatus.PENDING) {
             throw new BadRequestException("Upload is still pending");
         }
-        if (listingImageRepository.existsByPublicId(publicId)
-                || listingRepository.existsByVideoPublicId(publicId)
-                || (asset.getOriginalUrl() != null
-                    && listingRepository.existsByProofOfOwnershipUrl(asset.getOriginalUrl()))) {
-            throw new BadRequestException("Remove this media from the listing before deleting it");
+        if (isReferenced(asset)) {
+            throw new BadRequestException("Remove this media from its current usage before deleting it");
+        }
+        deleteAsset(asset);
+    }
+
+    @Transactional
+    public void deleteUnused(UUID mediaAssetId) {
+        mediaAssetRepository.findById(mediaAssetId).ifPresent(asset -> {
+            if (!isReferenced(asset)) {
+                deleteAsset(asset);
+            }
+        });
+    }
+
+    @Transactional
+    public void deleteLegacyUntracked(String publicId, String resourceType) {
+        if (publicId == null || publicId.isBlank()) {
+            return;
+        }
+        if (mediaAssetRepository.findByPublicId(publicId).isPresent()) {
+            throw new BadRequestException("Managed media must be deleted through its media record");
         }
         try {
             Map<?, ?> result = cloudinary.uploader().destroy(publicId,
                     ObjectUtils.asMap("resource_type", resourceType));
+            if (!"ok".equals(result.get("result")) && !"not found".equals(result.get("result"))) {
+                throw new BadRequestException("Failed to delete file from Cloudinary");
+            }
+        } catch (IOException exception) {
+            throw new BadRequestException("Failed to delete file from Cloudinary");
+        }
+    }
+
+    private boolean isReferenced(MediaAsset asset) {
+        return mediaAssetUsageService.isAttached(asset.getId())
+                || amenityRepository.existsByImagePublicId(asset.getPublicId())
+                || listingImageRepository.existsByPublicId(asset.getPublicId())
+                || listingRepository.existsByVideoPublicId(asset.getPublicId())
+                || (asset.getOriginalUrl() != null
+                    && listingRepository.existsByProofOfOwnershipUrl(asset.getOriginalUrl()));
+    }
+
+    private void deleteAsset(MediaAsset asset) {
+        try {
+            Map<?, ?> result = cloudinary.uploader().destroy(asset.getPublicId(),
+                    ObjectUtils.asMap("resource_type", asset.getKind().resourceType()));
             if (!"ok".equals(result.get("result")) && !"not found".equals(result.get("result"))) {
                 throw new BadRequestException("Failed to delete file from Cloudinary");
             }

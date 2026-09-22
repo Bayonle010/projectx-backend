@@ -14,7 +14,4 @@ public interface FileService {
     FileUploadResponse uploadDocument(MultipartFile file, String folderName, String idempotencyKey,
                                       AuthenticationIdentity auth);
 
-    void deleteFileByPublicId(String publicId, String resourceType);
-
-
 }

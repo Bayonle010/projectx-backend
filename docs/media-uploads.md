@@ -60,3 +60,20 @@ refuse to authorize direct videos until this is configured. It still verifies
 actual duration and bytes after upload. The six-minute duration rule is checked
 after Cloudinary receives the video, so also reject it early in the browser for
 good user experience. The browser check alone is not a security boundary.
+
+## Media attachment lifecycle
+
+The existing listing and amenity request bodies remain supported. They may send
+the current public IDs and URLs, but the backend resolves the public ID to an
+owned, `READY` `media_assets` record and always persists the canonical URL.
+Client-supplied URLs are not trusted.
+
+When verified media is attached to a listing or amenity, the backend records a
+`media_asset_usages` relationship containing the media asset, owning entity, and
+usage type. The generic file deletion endpoint rejects deletion while any usage
+exists. Amenities are shared catalogue records, so deleting one deactivates it
+instead of removing its image, usage record, or existing listing relationships.
+Inactive amenities are hidden from the selection catalogue and cannot be added
+to another listing, while listings that already use them keep working. Legacy
+listing and amenity reference checks remain in the deletion service to protect
+records created before usage tracking was added.

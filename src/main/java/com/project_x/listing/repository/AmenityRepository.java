@@ -10,4 +10,8 @@ import java.util.UUID;
 public interface AmenityRepository extends JpaRepository<Amenity, UUID> {
 
     List<Amenity> findAllByIdIn(Set<UUID> amenityIds);
+
+    List<Amenity> findAllByActiveTrue();
+
+    boolean existsByImagePublicId(String imagePublicId);
 }

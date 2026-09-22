@@ -4,8 +4,11 @@ import com.project_x.adress.service.LocationService;
 import com.project_x.core.exception.BadRequestException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.file.MediaKind;
+import com.project_x.file.MediaEntityType;
+import com.project_x.file.MediaUsageType;
 import com.project_x.file.entity.MediaAsset;
 import com.project_x.file.service.MediaAssetService;
+import com.project_x.file.service.MediaAssetUsageService;
 import com.project_x.listing.builder.ListingResponseBuilder;
 import com.project_x.listing.dto.request.ImageRequest;
 import com.project_x.listing.dto.request.SaveListingRequest;
@@ -30,6 +33,7 @@ import static org.mockito.Mockito.*;
 class ListingMediaOwnershipTests {
     private ListingRepository listings;
     private MediaAssetService media;
+    private MediaAssetUsageService usages;
     private ListingServiceImpl service;
     private UUID ownerId;
     private UUID listingId;
@@ -40,6 +44,7 @@ class ListingMediaOwnershipTests {
     void setUp() {
         listings = mock(ListingRepository.class);
         media = mock(MediaAssetService.class);
+        usages = mock(MediaAssetUsageService.class);
         UserService users = mock(UserService.class);
         ownerId = UUID.randomUUID();
         listingId = UUID.randomUUID();
@@ -54,7 +59,7 @@ class ListingMediaOwnershipTests {
         service = new ListingServiceImpl(listings, mock(ListingValidator.class), users,
                 mock(ListingResponseBuilder.class), mock(LocationService.class),
                 mock(ListingReferenceResolver.class), mock(ListingDescriptionGenerator.class),
-                mock(ListingFriendlyIdGenerator.class), media);
+                mock(ListingFriendlyIdGenerator.class), media, usages);
     }
 
     @Test
@@ -86,6 +91,8 @@ class ListingMediaOwnershipTests {
         service.save(request, identity);
 
         assertEquals("https://res.cloudinary.com/verified-image", listing.getImages().getFirst().getUrl());
+        verify(usages).replace(eq(MediaEntityType.LISTING), eq(listingId),
+                eq(MediaUsageType.IMAGE), eq(List.of(asset)));
     }
 
     @Test

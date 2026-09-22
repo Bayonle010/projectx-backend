@@ -34,6 +34,8 @@ class MediaAssetServiceTests {
                 "cloud_name", "test-cloud", "api_key", "test-key", "api_secret", "test-secret"));
         service = new MediaAssetService(cloudinary, assets,
                 mock(ListingRepository.class), mock(ListingImageRepository.class),
+                mock(com.project_x.listing.repository.AmenityRepository.class),
+                mock(MediaAssetUsageService.class),
                 mock(com.project_x.user.service.UserService.class));
         ReflectionTestUtils.setField(service, "maxVideoBytes", 524288000L);
         ReflectionTestUtils.setField(service, "videoUploadPreset", "test-video-preset");

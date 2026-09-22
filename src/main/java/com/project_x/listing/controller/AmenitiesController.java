@@ -3,6 +3,7 @@ package com.project_x.listing.controller;
 
 import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
+import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.listing.dto.request.AmenitiesRequest;
 import com.project_x.listing.dto.response.AmenitiesResponse;
 import com.project_x.listing.service.AmenitiesService;
@@ -25,8 +26,10 @@ public class AmenitiesController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse> createAmenity(@Valid @RequestBody AmenitiesRequest request) {
-        AmenitiesResponse response = amenitiesService.createAmenity(request);
+    public ResponseEntity<ApiResponse> createAmenity(
+            @Valid @RequestBody AmenitiesRequest request,
+            @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity auth) {
+        AmenitiesResponse response = amenitiesService.createAmenity(request, auth);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ResponseUtil.success(0, "Amenity created successfully", "", response, "")
@@ -56,7 +59,7 @@ public class AmenitiesController {
         amenitiesService.deleteAmenity(id);
 
         return ResponseEntity.ok(
-                ResponseUtil.success(0, "Amenity deleted successfully", "", null, "")
+                ResponseUtil.success(0, "Amenity deactivated successfully", "", null, "")
 
         );
     }
