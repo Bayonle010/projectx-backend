@@ -16,6 +16,7 @@ import com.project_x.adress.service.LocationService;
 import com.project_x.listing.builder.ListingResponseBuilder;
 import com.project_x.listing.dto.request.SaveListingRequest;
 import com.project_x.listing.dto.request.ImageRequest;
+import com.project_x.listing.dto.request.SetCoverImageRequest;
 import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.dto.response.GeneratedListingDescriptionResponse;
 import com.project_x.listing.entity.Amenity;
@@ -213,6 +214,58 @@ public class ListingServiceImpl implements ListingService {
         }
 
         return listingResponseBuilder.toResponse(listing);
+    }
+
+    @Override
+    @Transactional
+    public ListingResponse setCoverImage(
+            UUID listingId,
+            SetCoverImageRequest request,
+            AuthenticationIdentity authenticationIdentity
+    ) {
+        User owner = userService.fetchAuthenticatedUser(authenticationIdentity);
+
+        Listing listing = listingRepository.findWithDetailsByIdAndOwnerId(
+                listingId,
+                owner.getId()
+        ).orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
+
+        if (listing.getStatus() == ListingStatus.ARCHIVED) {
+            throw new BadRequestException(
+                    "Cover image cannot be changed on an archived listing"
+            );
+        }
+
+        List<ListingImage> orderedImages = listing.getImages()
+                .stream()
+                .filter(Objects::nonNull)
+                .sorted(
+                        Comparator.comparing(
+                                ListingImage::getPosition,
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        ).thenComparing(ListingImage::getId)
+                )
+                .toList();
+
+        ListingImage selectedImage = orderedImages.stream()
+                .filter(image -> request.imagePublicId().equals(image.getPublicId()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException(
+                        "Image is not attached to this listing"
+                ));
+
+        List<ListingImage> reorderedImages = new ArrayList<>();
+        reorderedImages.add(selectedImage);
+        orderedImages.stream()
+                .filter(image -> image != selectedImage)
+                .forEach(reorderedImages::add);
+
+        for (int index = 0; index < reorderedImages.size(); index++) {
+            reorderedImages.get(index).setPosition(index);
+        }
+
+        Listing savedListing = listingRepository.save(listing);
+        return listingResponseBuilder.toResponse(savedListing);
     }
 
 

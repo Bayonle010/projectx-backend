@@ -205,6 +205,8 @@ public class PropertyReviewQueryServiceImpl
                 .map(projection ->
                         new OwnerPropertyReviewResponse(
                                 projection.getListingId(),
+                                projection.getFriendlyId(),
+                                projection.getCoverImageUrl(),
                                 projection.getAddress(),
                                 safeLong(
                                         projection.getTotalReviews()
