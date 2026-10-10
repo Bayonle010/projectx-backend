@@ -58,11 +58,21 @@ public class ReviewMapper {
     public ReviewCommentResponse toCommentResponse(
             ReviewComment comment
     ) {
+        return toCommentResponse(comment, 0L, false);
+    }
+
+    public ReviewCommentResponse toCommentResponse(
+            ReviewComment comment,
+            long likeCount,
+            boolean likedByCurrentUser
+    ) {
         return new ReviewCommentResponse(
                 comment.getId(),
                 comment.getReview().getId(),
                 toReviewerResponse(comment.getAuthor()),
                 comment.getContent(),
+                likeCount,
+                likedByCurrentUser,
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
         );

@@ -23,6 +23,11 @@ public interface PropertyReviewRepository
             UUID reviewerId
     );
 
+    boolean existsByIdAndStatus(
+            UUID id,
+            ReviewStatus status
+    );
+
     @EntityGraph(attributePaths = {"reviewer"})
     Page<PropertyReview> findByListing_IdAndStatusOrderByCreatedAtDesc(
             UUID listingId,

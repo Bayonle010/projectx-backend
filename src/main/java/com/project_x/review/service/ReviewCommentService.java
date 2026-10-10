@@ -18,6 +18,7 @@ public interface ReviewCommentService {
     Page<ReviewCommentResponse> getComments(
             UUID reviewId,
             Long page,
-            Long pageSize
+            Long pageSize,
+            AuthenticationIdentity auth
     );
 }

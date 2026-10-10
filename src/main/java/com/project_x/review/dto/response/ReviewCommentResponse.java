@@ -8,6 +8,8 @@ public record ReviewCommentResponse(
         UUID reviewId,
         ReviewerResponse author,
         String content,
+        long likeCount,
+        boolean likedByCurrentUser,
         Instant createdAt,
         Instant updatedAt
 ) {

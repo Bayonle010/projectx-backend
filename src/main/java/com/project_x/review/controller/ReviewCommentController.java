@@ -52,13 +52,16 @@ public class ReviewCommentController {
     public ResponseEntity<ApiResponse> getComments(
             @PathVariable UUID reviewId,
             @RequestParam(defaultValue = "0") Long page,
-            @RequestParam(defaultValue = "20") Long pageSize
+            @RequestParam(defaultValue = "20") Long pageSize,
+            @RequestAttribute(value = "AUTH_IDENTITY", required = false)
+            AuthenticationIdentity auth
     ) {
         Page<ReviewCommentResponse> response =
                 commentService.getComments(
                         reviewId,
                         page,
-                        pageSize
+                        pageSize,
+                        auth
                 );
 
         return ResponseEntity.status(HttpStatus.OK).body(

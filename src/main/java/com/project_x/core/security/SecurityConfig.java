@@ -64,6 +64,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(WHITE_LIST_URL).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/reviews/listings/*",
+                                "/api/v1/reviews/listings/*/summary",
+                                "/api/v1/reviews/*/comments"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

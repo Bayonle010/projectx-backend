@@ -90,13 +90,10 @@ public class PropertyReviewQueryServiceImpl
                                 ReviewCountProjection::getTotal
                         ));
 
-        Set<UUID> likedReviewIds =
-                new HashSet<>(
-                        likeRepository.findLikedReviewIds(
-                                UUID.fromString(auth.getId()),
-                                reviewIds
-                        )
-                );
+        Set<UUID> likedReviewIds = getLikedReviewIds(
+                auth,
+                reviewIds
+        );
 
         return reviewPage.map(review -> {
             UUID reviewId = review.getId();
@@ -220,5 +217,21 @@ public class PropertyReviewQueryServiceImpl
 
     private long safeLong(Long value) {
         return value == null ? 0L : value;
+    }
+
+    private Set<UUID> getLikedReviewIds(
+            AuthenticationIdentity auth,
+            List<UUID> reviewIds
+    ) {
+        if (auth == null) {
+            return Collections.emptySet();
+        }
+
+        return new HashSet<>(
+                likeRepository.findLikedReviewIds(
+                        UUID.fromString(auth.getId()),
+                        reviewIds
+                )
+        );
     }
 }

@@ -57,7 +57,7 @@ public class PropertyReviewController {
             @PathVariable UUID listingId,
             @RequestParam(defaultValue = "0") Long page,
             @RequestParam(defaultValue = "20") Long pageSize,
-            @RequestAttribute("AUTH_IDENTITY")
+            @RequestAttribute(value = "AUTH_IDENTITY", required = false)
             AuthenticationIdentity auth
     ) {
         Page<PropertyReviewResponse> response =
