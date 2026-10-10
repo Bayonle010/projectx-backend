@@ -4,6 +4,8 @@ import com.project_x.core.response.ApiResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -46,6 +48,28 @@ class GlobalExceptionHandlerRequestBindingTests {
         assertEquals(
                 "Invalid value for request parameter 'fileSize'. Expected a valid number",
                 response.getBody().getMessage()
+        );
+    }
+
+    @Test
+    void missingRequestBodyReturnsFriendlyBadRequest() {
+        HttpMessageNotReadableException exception =
+                new HttpMessageNotReadableException(
+                        "Required request body is missing: controller method",
+                        new MockHttpInputMessage(new byte[0])
+                );
+
+        ResponseEntity<ApiResponse> response =
+                handler.handleInvalidJson(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(
+                "Request body is required",
+                response.getBody().getMessage()
+        );
+        assertEquals(
+                "Provide a valid JSON request body",
+                response.getBody().getDetails()
         );
     }
 }

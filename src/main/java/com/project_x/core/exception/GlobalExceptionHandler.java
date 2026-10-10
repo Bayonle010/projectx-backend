@@ -365,15 +365,23 @@ public class GlobalExceptionHandler {
                 ex
         );
 
-        Throwable mostSpecificCause = ex.getMostSpecificCause();
+        boolean requestBodyMissing =
+                isRequiredRequestBodyMissing(ex);
 
-        String readableMessage =
-                buildReadableJsonError(mostSpecificCause);
+        String readableMessage = requestBodyMissing
+                ? "Request body is required"
+                : buildReadableJsonError(
+                        ex.getMostSpecificCause()
+                );
+
+        String details = requestBodyMissing
+                ? "Provide a valid JSON request body"
+                : "Invalid request body";
 
         ApiResponse errorResponse = ResponseUtil.error(
                 HttpStatus.BAD_REQUEST.value(),
                 readableMessage,
-                "Invalid request body",
+                details,
                 null
         );
 
@@ -505,6 +513,17 @@ public class GlobalExceptionHandler {
         }
 
         return buildMalformedJsonMessage(cause.getMessage());
+    }
+
+    private boolean isRequiredRequestBodyMissing(
+            HttpMessageNotReadableException exception
+    ) {
+        String message = exception.getMessage();
+
+        return message != null
+                && message.contains(
+                        "Required request body is missing"
+                );
     }
 
     private String buildInvalidFormatMessage(
