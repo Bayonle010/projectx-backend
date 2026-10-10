@@ -81,7 +81,8 @@ public class ReviewMapper {
     public ReviewerResponse toReviewerResponse(User user) {
         return new ReviewerResponse(
                 user.getId(),
-                buildDisplayName(user)
+                buildDisplayName(user),
+                normalizeOptionalText(user.getAvatar())
         );
     }
 
