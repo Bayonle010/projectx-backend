@@ -8,6 +8,11 @@ import java.util.UUID;
 
 public interface PropertyReviewQueryService {
 
+    PropertyReviewResponse getReview(
+            UUID reviewId,
+            AuthenticationIdentity auth
+    );
+
     Page<PropertyReviewResponse> getListingReviews(
             UUID listingId,
             Long page,

@@ -24,6 +24,11 @@ public interface ReviewCommentRepository
             ReviewStatus reviewStatus
     );
 
+    long countByReview_IdAndStatus(
+            UUID reviewId,
+            ReviewCommentStatus status
+    );
+
     @EntityGraph(attributePaths = {"author"})
     Page<ReviewComment> findByReview_IdAndStatusOrderByCreatedAtAsc(
             UUID reviewId,

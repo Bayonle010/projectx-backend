@@ -52,6 +52,28 @@ public class PropertyReviewController {
         );
     }
 
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse> getReview(
+            @PathVariable UUID reviewId,
+            @RequestAttribute(value = "AUTH_IDENTITY", required = false)
+            AuthenticationIdentity auth
+    ) {
+        PropertyReviewResponse response = queryService.getReview(
+                reviewId,
+                auth
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Review retrieved",
+                        "Property review retrieved successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/listings/{listingId}")
     public ResponseEntity<ApiResponse> getListingReviews(
             @PathVariable UUID listingId,

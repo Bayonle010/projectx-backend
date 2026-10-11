@@ -1,5 +1,6 @@
 package com.project_x.review.service.impl;
 
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.listing.repository.ListingRepository;
@@ -33,6 +34,37 @@ public class PropertyReviewQueryServiceImpl
     private final ReviewCommentRepository commentRepository;
     private final ListingRepository listingRepository;
     private final ReviewMapper reviewMapper;
+
+    @Override
+    public PropertyReviewResponse getReview(
+            UUID reviewId,
+            AuthenticationIdentity auth
+    ) {
+        PropertyReview review = reviewRepository
+                .findByIdAndStatus(reviewId, ReviewStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Property review not found"
+                ));
+
+        long likeCount = likeRepository.countByReview_Id(reviewId);
+        long commentCount = commentRepository
+                .countByReview_IdAndStatus(
+                        reviewId,
+                        ReviewCommentStatus.ACTIVE
+                );
+        boolean likedByCurrentUser = auth != null
+                && likeRepository.existsByReview_IdAndUser_Id(
+                        reviewId,
+                        UUID.fromString(auth.getId())
+                );
+
+        return reviewMapper.toResponse(
+                review,
+                likeCount,
+                commentCount,
+                likedByCurrentUser
+        );
+    }
 
     @Override
     public Page<PropertyReviewResponse> getListingReviews(
