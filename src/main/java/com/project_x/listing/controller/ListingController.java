@@ -5,6 +5,7 @@ import com.project_x.core.response.ApiResponse;
 import com.project_x.core.response.ResponseUtil;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.listing.dto.request.SaveListingRequest;
+import com.project_x.listing.dto.request.SetCoverImageRequest;
 import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.dto.response.GeneratedListingDescriptionResponse;
 import com.project_x.listing.service.ListingService;
@@ -125,6 +126,29 @@ public class ListingController {
                         0,
                         "Listing archived",
                         "Listing archived successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
+    @PatchMapping("/{listingId}/cover-image")
+    public ResponseEntity<ApiResponse> setCoverImage(
+            @PathVariable UUID listingId,
+            @Valid @RequestBody SetCoverImageRequest request,
+            @RequestAttribute("AUTH_IDENTITY") AuthenticationIdentity authenticationIdentity
+    ) {
+        ListingResponse response = listingService.setCoverImage(
+                listingId,
+                request,
+                authenticationIdentity
+        );
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        0,
+                        "Cover image updated",
+                        "Listing cover image updated successfully",
                         response,
                         null
                 )

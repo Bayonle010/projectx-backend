@@ -1,5 +1,6 @@
 package com.project_x.review.service.impl;
 
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.review.dto.response.ReviewLikeResponse;
 import com.project_x.review.enums.ReviewStatus;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.module.ResolutionException;
 import java.util.UUID;
 
 @Service
@@ -70,15 +70,11 @@ public class ReviewLikeServiceImpl implements ReviewLikeService {
     }
 
     private void validateReview(UUID reviewId) {
-        boolean exists =
-                reviewRepository.findByIdAndStatus(
-                                reviewId,
-                                ReviewStatus.ACTIVE
-                        )
-                        .isPresent();
-
-        if (!exists) {
-            throw new ResolutionException(
+        if (!reviewRepository.existsByIdAndStatus(
+                reviewId,
+                ReviewStatus.ACTIVE
+        )) {
+            throw new ResourceNotFoundException(
                     "Property review not found"
             );
         }

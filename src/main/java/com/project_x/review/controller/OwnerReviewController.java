@@ -42,7 +42,7 @@ public class OwnerReviewController {
     @GetMapping("/properties")
     public ResponseEntity<ApiResponse> getProperties(
             @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") Long page,
+            @RequestParam(defaultValue = "1") Long page,
             @RequestParam(defaultValue = "20") Long pageSize,
             @RequestAttribute("AUTH_IDENTITY")
             AuthenticationIdentity auth

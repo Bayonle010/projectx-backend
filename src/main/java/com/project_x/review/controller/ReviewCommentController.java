@@ -48,17 +48,63 @@ public class ReviewCommentController {
         );
     }
 
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse> updateComment(
+            @PathVariable UUID commentId,
+            @Valid @RequestBody SaveReviewCommentRequest request,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        ReviewCommentResponse response = commentService.update(
+                commentId,
+                request,
+                auth
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Comment updated",
+                        "Review comment updated successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse> deleteComment(
+            @PathVariable UUID commentId,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        commentService.delete(commentId, auth);
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Comment deleted",
+                        "Review comment deleted successfully",
+                        null,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/{reviewId}/comments")
     public ResponseEntity<ApiResponse> getComments(
             @PathVariable UUID reviewId,
-            @RequestParam(defaultValue = "0") Long page,
-            @RequestParam(defaultValue = "20") Long pageSize
+            @RequestParam(defaultValue = "1") Long page,
+            @RequestParam(defaultValue = "20") Long pageSize,
+            @RequestAttribute(value = "AUTH_IDENTITY", required = false)
+            AuthenticationIdentity auth
     ) {
         Page<ReviewCommentResponse> response =
                 commentService.getComments(
                         reviewId,
                         page,
-                        pageSize
+                        pageSize,
+                        auth
                 );
 
         return ResponseEntity.status(HttpStatus.OK).body(

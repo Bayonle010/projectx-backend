@@ -29,6 +29,18 @@ public class ReviewMapper {
                 .build();
     }
 
+    public void updateEntity(
+            PropertyReview review,
+            SavePropertyReviewRequest request
+    ) {
+        review.setOverallRating(request.overallRating());
+        review.setCleanlinessRating(request.cleanlinessRating());
+        review.setCommunicationRating(request.communicationRating());
+        review.setAccuracyRating(request.accuracyRating());
+        review.setValueForMoneyRating(request.valueForMoneyRating());
+        review.setReviewText(normalizeOptionalText(request.reviewText()));
+    }
+
     public PropertyReviewResponse toResponse(
             PropertyReview review,
             long likeCount,
@@ -58,11 +70,21 @@ public class ReviewMapper {
     public ReviewCommentResponse toCommentResponse(
             ReviewComment comment
     ) {
+        return toCommentResponse(comment, 0L, false);
+    }
+
+    public ReviewCommentResponse toCommentResponse(
+            ReviewComment comment,
+            long likeCount,
+            boolean likedByCurrentUser
+    ) {
         return new ReviewCommentResponse(
                 comment.getId(),
                 comment.getReview().getId(),
                 toReviewerResponse(comment.getAuthor()),
                 comment.getContent(),
+                likeCount,
+                likedByCurrentUser,
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
         );
@@ -71,7 +93,8 @@ public class ReviewMapper {
     public ReviewerResponse toReviewerResponse(User user) {
         return new ReviewerResponse(
                 user.getId(),
-                buildDisplayName(user)
+                buildDisplayName(user),
+                normalizeOptionalText(user.getAvatar())
         );
     }
 

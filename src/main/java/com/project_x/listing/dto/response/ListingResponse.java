@@ -66,6 +66,8 @@ public record ListingResponse(
 
         Set<ListingAmenityResponse> amenities,
 
+        ImageResponse coverImage,
+
         List<ImageResponse> images,
 
         String videoUrl,

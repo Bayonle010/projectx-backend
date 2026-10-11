@@ -23,6 +23,11 @@ public interface PropertyReviewRepository
             UUID reviewerId
     );
 
+    boolean existsByIdAndStatus(
+            UUID id,
+            ReviewStatus status
+    );
+
     @EntityGraph(attributePaths = {"reviewer"})
     Page<PropertyReview> findByListing_IdAndStatusOrderByCreatedAtDesc(
             UUID listingId,
@@ -74,10 +79,14 @@ public interface PropertyReviewRepository
             value = """
                 SELECT
                     listing.id AS listingId,
+                    listing.friendlyId AS friendlyId,
+                    coverImage.url AS coverImageUrl,
                     listing.addressLine AS address,
                     COUNT(review.id) AS totalReviews,
                     COALESCE(AVG(review.overallRating), 0.0) AS averageRating
                 FROM Listing listing
+                LEFT JOIN listing.images coverImage
+                    ON coverImage.position = 0
                 LEFT JOIN PropertyReview review
                     ON review.listing = listing
                     AND review.status = :reviewStatus
@@ -87,7 +96,8 @@ public interface PropertyReviewRepository
                       OR LOWER(listing.addressLine)
                          LIKE CONCAT('%', LOWER(:search), '%')
                   )
-                GROUP BY listing.id, listing.addressLine, listing.createdAt
+                GROUP BY listing.id, listing.friendlyId, coverImage.url,
+                         listing.addressLine, listing.createdAt
                 ORDER BY listing.createdAt DESC
                 """,
             countQuery = """

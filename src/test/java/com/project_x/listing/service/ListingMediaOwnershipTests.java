@@ -12,7 +12,10 @@ import com.project_x.file.service.MediaAssetUsageService;
 import com.project_x.listing.builder.ListingResponseBuilder;
 import com.project_x.listing.dto.request.ImageRequest;
 import com.project_x.listing.dto.request.SaveListingRequest;
+import com.project_x.listing.dto.request.SetCoverImageRequest;
 import com.project_x.listing.entity.Listing;
+import com.project_x.listing.entity.ListingImage;
+import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.impl.ListingServiceImpl;
@@ -55,9 +58,10 @@ class ListingMediaOwnershipTests {
         listing = new Listing();
         listing.setId(listingId);
         when(listings.findByIdAndOwnerId(listingId, ownerId)).thenReturn(Optional.of(listing));
+        when(listings.findWithDetailsByIdAndOwnerId(listingId, ownerId)).thenReturn(Optional.of(listing));
         when(listings.save(any(Listing.class))).thenAnswer(invocation -> invocation.getArgument(0));
         service = new ListingServiceImpl(listings, mock(ListingValidator.class), users,
-                mock(ListingResponseBuilder.class), mock(LocationService.class),
+                new ListingResponseBuilder(), mock(LocationService.class),
                 mock(ListingReferenceResolver.class), mock(ListingDescriptionGenerator.class),
                 mock(ListingFriendlyIdGenerator.class), media, usages);
     }
@@ -103,5 +107,75 @@ class ListingMediaOwnershipTests {
 
         assertThrows(BadRequestException.class, () -> service.save(request, identity));
         verify(listings, never()).save(any());
+    }
+
+    @Test
+    void promotesAnAttachedImageToCoverAndPreservesTheRemainingOrder() {
+        ListingImage first = image("first", 0);
+        ListingImage second = image("second", 1);
+        ListingImage third = image("third", 2);
+        listing.setImages(new java.util.ArrayList<>(List.of(first, second, third)));
+        listing.setStatus(ListingStatus.PUBLISHED);
+
+        var response = service.setCoverImage(
+                listingId,
+                new SetCoverImageRequest("third"),
+                identity
+        );
+
+        assertEquals(0, third.getPosition());
+        assertEquals(1, first.getPosition());
+        assertEquals(2, second.getPosition());
+        assertEquals("third", response.coverImage().publicId());
+        assertEquals(List.of("third", "first", "second"), response.images()
+                .stream()
+                .map(image -> image.publicId())
+                .toList());
+        verify(listings).save(listing);
+    }
+
+    @Test
+    void rejectsACoverImageThatIsNotAttachedToTheListing() {
+        listing.setImages(new java.util.ArrayList<>(List.of(image("first", 0))));
+
+        assertThrows(
+                BadRequestException.class,
+                () -> service.setCoverImage(
+                        listingId,
+                        new SetCoverImageRequest("another-listing-image"),
+                        identity
+                )
+        );
+
+        verify(listings, never()).save(any());
+    }
+
+    @Test
+    void rejectsCoverChangesForArchivedListings() {
+        listing.setStatus(ListingStatus.ARCHIVED);
+        listing.setImages(new java.util.ArrayList<>(List.of(image("first", 0))));
+
+        assertThrows(
+                BadRequestException.class,
+                () -> service.setCoverImage(
+                        listingId,
+                        new SetCoverImageRequest("first"),
+                        identity
+                )
+        );
+
+        verify(listings, never()).save(any());
+    }
+
+    private ListingImage image(String publicId, int position) {
+        return ListingImage.builder()
+                .id(UUID.randomUUID())
+                .listing(listing)
+                .publicId(publicId)
+                .url("https://res.cloudinary.com/" + publicId)
+                .format("jpg")
+                .resourceType("image")
+                .position(position)
+                .build();
     }
 }

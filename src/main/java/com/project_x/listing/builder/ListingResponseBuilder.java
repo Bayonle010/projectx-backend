@@ -28,6 +28,7 @@ public class ListingResponseBuilder {
         State state = listing.getState();
         Lga lga = listing.getLga();
         User owner = listing.getOwner();
+        List<ImageResponse> imageResponses = toImageResponses(listing);
 
         return ListingResponse.builder()
                 .id(listing.getId())
@@ -114,9 +115,9 @@ public class ListingResponseBuilder {
                         toAmenityResponses(listing)
                 )
 
-                .images(
-                        toImageResponses(listing)
-                )
+                .coverImage(toCoverImageResponse(imageResponses))
+
+                .images(imageResponses)
 
                 .videoUrl(listing.getVideoUrl())
 
@@ -129,6 +130,15 @@ public class ListingResponseBuilder {
                 .createdAt(listing.getCreatedAt())
                 .updatedAt(listing.getUpdatedAt())
                 .build();
+    }
+
+    private ImageResponse toCoverImageResponse(
+            List<ImageResponse> images
+    ) {
+        return images.stream()
+                .filter(image -> Objects.equals(image.position(), 0))
+                .findFirst()
+                .orElse(null);
     }
 
     private List<ListingWaterSourceResponse> toWaterSourceResponses(

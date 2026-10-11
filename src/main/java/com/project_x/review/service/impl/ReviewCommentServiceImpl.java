@@ -1,5 +1,6 @@
 package com.project_x.review.service.impl;
 
+import com.project_x.core.exception.AccessDeniedException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.security.model.AuthenticationIdentity;
@@ -10,7 +11,9 @@ import com.project_x.review.entity.ReviewComment;
 import com.project_x.review.enums.ReviewCommentStatus;
 import com.project_x.review.enums.ReviewStatus;
 import com.project_x.review.mapper.ReviewMapper;
+import com.project_x.review.projection.CommentCountProjection;
 import com.project_x.review.repository.PropertyReviewRepository;
+import com.project_x.review.repository.ReviewCommentLikeRepository;
 import com.project_x.review.repository.ReviewCommentRepository;
 import com.project_x.review.service.ReviewCommentService;
 import com.project_x.user.entity.User;
@@ -21,7 +24,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +39,7 @@ public class ReviewCommentServiceImpl
 
     private final PropertyReviewRepository reviewRepository;
     private final ReviewCommentRepository commentRepository;
+    private final ReviewCommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
     private final ReviewMapper reviewMapper;
 
@@ -67,24 +77,143 @@ public class ReviewCommentServiceImpl
     }
 
     @Override
+    @Transactional
+    public ReviewCommentResponse update(
+            UUID commentId,
+            SaveReviewCommentRequest request,
+            AuthenticationIdentity auth
+    ) {
+        UUID authenticatedUserId = UUID.fromString(auth.getId());
+
+        ReviewComment comment = commentRepository
+                .findByIdAndStatusAndReview_Status(
+                        commentId,
+                        ReviewCommentStatus.ACTIVE,
+                        ReviewStatus.ACTIVE
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Review comment not found"
+                ));
+
+        if (!comment.getAuthor().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException(
+                    "You can only edit comments you created"
+            );
+        }
+
+        comment.setContent(request.content().trim());
+        ReviewComment savedComment = commentRepository.save(comment);
+
+        return reviewMapper.toCommentResponse(
+                savedComment,
+                commentLikeRepository.countByComment_Id(commentId),
+                commentLikeRepository.existsByComment_IdAndUser_Id(
+                        commentId,
+                        authenticatedUserId
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public void delete(
+            UUID commentId,
+            AuthenticationIdentity auth
+    ) {
+        UUID authenticatedUserId = UUID.fromString(auth.getId());
+
+        ReviewComment comment = commentRepository
+                .findByIdAndStatusAndReview_Status(
+                        commentId,
+                        ReviewCommentStatus.ACTIVE,
+                        ReviewStatus.ACTIVE
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Review comment not found"
+                ));
+
+        if (!comment.getAuthor().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException(
+                    "You can only delete comments you created"
+            );
+        }
+
+        comment.setStatus(ReviewCommentStatus.DELETED);
+        commentRepository.save(comment);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<ReviewCommentResponse> getComments(
             UUID reviewId,
             Long page,
-            Long pageSize
+            Long pageSize,
+            AuthenticationIdentity auth
     ) {
+        if (!reviewRepository.existsByIdAndStatus(
+                reviewId,
+                ReviewStatus.ACTIVE
+        )) {
+            throw new ResourceNotFoundException(
+                    "Property review not found"
+            );
+        }
+
         Pageable pageable =
                 PaginationAdapters.createPageRequestWithRecentFirstsSortOrder(
                         page,
                         pageSize
                 );
 
-        return commentRepository
+        Page<ReviewComment> commentPage = commentRepository
                 .findByReview_IdAndStatusOrderByCreatedAtAsc(
                         reviewId,
                         ReviewCommentStatus.ACTIVE,
                         pageable
+                );
+
+        List<UUID> commentIds = commentPage.getContent()
+                .stream()
+                .map(ReviewComment::getId)
+                .toList();
+
+        if (commentIds.isEmpty()) {
+            return commentPage.map(reviewMapper::toCommentResponse);
+        }
+
+        Map<UUID, Long> likeCounts = commentLikeRepository
+                .countLikesByCommentIds(commentIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        CommentCountProjection::getCommentId,
+                        CommentCountProjection::getTotal
+                ));
+
+        Set<UUID> likedCommentIds = getLikedCommentIds(
+                auth,
+                commentIds
+        );
+
+        return commentPage.map(comment -> reviewMapper.toCommentResponse(
+                comment,
+                likeCounts.getOrDefault(comment.getId(), 0L),
+                likedCommentIds.contains(comment.getId())
+        ));
+    }
+
+    private Set<UUID> getLikedCommentIds(
+            AuthenticationIdentity auth,
+            List<UUID> commentIds
+    ) {
+        if (auth == null) {
+            return Collections.emptySet();
+        }
+
+        return new HashSet<>(
+                commentLikeRepository.findLikedCommentIds(
+                        UUID.fromString(auth.getId()),
+                        commentIds
                 )
-                .map(reviewMapper::toCommentResponse);
+        );
     }
 }

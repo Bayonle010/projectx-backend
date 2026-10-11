@@ -52,12 +52,77 @@ public class PropertyReviewController {
         );
     }
 
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse> getReview(
+            @PathVariable UUID reviewId,
+            @RequestAttribute(value = "AUTH_IDENTITY", required = false)
+            AuthenticationIdentity auth
+    ) {
+        PropertyReviewResponse response = queryService.getReview(
+                reviewId,
+                auth
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Review retrieved",
+                        "Property review retrieved successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
+    @PutMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse> update(
+            @PathVariable UUID reviewId,
+            @Valid @RequestBody SavePropertyReviewRequest request,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        PropertyReviewResponse response = commandService.update(
+                reviewId,
+                request,
+                auth
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Review updated",
+                        "Property review updated successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse> delete(
+            @PathVariable UUID reviewId,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        commandService.delete(reviewId, auth);
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Review deleted",
+                        "Property review deleted successfully",
+                        null,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/listings/{listingId}")
     public ResponseEntity<ApiResponse> getListingReviews(
             @PathVariable UUID listingId,
-            @RequestParam(defaultValue = "0") Long page,
+            @RequestParam(defaultValue = "1") Long page,
             @RequestParam(defaultValue = "20") Long pageSize,
-            @RequestAttribute("AUTH_IDENTITY")
+            @RequestAttribute(value = "AUTH_IDENTITY", required = false)
             AuthenticationIdentity auth
     ) {
         Page<PropertyReviewResponse> response =

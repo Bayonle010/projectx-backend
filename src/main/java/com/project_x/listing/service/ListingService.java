@@ -2,6 +2,7 @@ package com.project_x.listing.service;
 
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.listing.dto.request.SaveListingRequest;
+import com.project_x.listing.dto.request.SetCoverImageRequest;
 import com.project_x.listing.dto.response.ListingResponse;
 import com.project_x.listing.dto.response.GeneratedListingDescriptionResponse;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,12 @@ public interface ListingService {
 
     ListingResponse archiveProperty(
             UUID listingId,
+            AuthenticationIdentity authenticationIdentity
+    );
+
+    ListingResponse setCoverImage(
+            UUID listingId,
+            SetCoverImageRequest request,
             AuthenticationIdentity authenticationIdentity
     );
 }

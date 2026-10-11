@@ -243,7 +243,10 @@ public class MediaAssetService {
     public MediaAsset requireOwnedReady(UUID ownerId, String publicId, MediaKind kind) {
         return mediaAssetRepository.findByPublicIdAndOwnerId(publicId, ownerId)
                 .filter(asset -> asset.getStatus() == MediaStatus.READY && asset.getKind() == kind)
-                .orElseThrow(() -> new BadRequestException("Media does not belong to this user or is not ready"));
+                .orElseThrow(() -> new BadRequestException(
+                        "This media cannot be used. Please select a completed upload "
+                                + "of the required type from your account"
+                ));
     }
 
     @Transactional(readOnly = true)

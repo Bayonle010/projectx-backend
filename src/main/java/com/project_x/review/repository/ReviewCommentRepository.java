@@ -2,6 +2,7 @@ package com.project_x.review.repository;
 
 import com.project_x.review.entity.ReviewComment;
 import com.project_x.review.enums.ReviewCommentStatus;
+import com.project_x.review.enums.ReviewStatus;
 import com.project_x.review.projection.ReviewCountProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,10 +13,29 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ReviewCommentRepository
         extends JpaRepository<ReviewComment, UUID> {
+
+    boolean existsByIdAndStatusAndReview_Status(
+            UUID id,
+            ReviewCommentStatus status,
+            ReviewStatus reviewStatus
+    );
+
+    long countByReview_IdAndStatus(
+            UUID reviewId,
+            ReviewCommentStatus status
+    );
+
+    @EntityGraph(attributePaths = {"author", "review"})
+    Optional<ReviewComment> findByIdAndStatusAndReview_Status(
+            UUID id,
+            ReviewCommentStatus status,
+            ReviewStatus reviewStatus
+    );
 
     @EntityGraph(attributePaths = {"author"})
     Page<ReviewComment> findByReview_IdAndStatusOrderByCreatedAtAsc(
