@@ -74,6 +74,30 @@ public class PropertyReviewController {
         );
     }
 
+    @PutMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse> update(
+            @PathVariable UUID reviewId,
+            @Valid @RequestBody SavePropertyReviewRequest request,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        PropertyReviewResponse response = commandService.update(
+                reviewId,
+                request,
+                auth
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Review updated",
+                        "Property review updated successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/listings/{listingId}")
     public ResponseEntity<ApiResponse> getListingReviews(
             @PathVariable UUID listingId,

@@ -14,4 +14,10 @@ public interface PropertyReviewCommandService {
             SavePropertyReviewRequest request,
             AuthenticationIdentity auth
     );
+
+    PropertyReviewResponse update(
+            UUID reviewId,
+            SavePropertyReviewRequest request,
+            AuthenticationIdentity auth
+    );
 }

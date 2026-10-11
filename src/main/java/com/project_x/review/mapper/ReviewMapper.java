@@ -29,6 +29,18 @@ public class ReviewMapper {
                 .build();
     }
 
+    public void updateEntity(
+            PropertyReview review,
+            SavePropertyReviewRequest request
+    ) {
+        review.setOverallRating(request.overallRating());
+        review.setCleanlinessRating(request.cleanlinessRating());
+        review.setCommunicationRating(request.communicationRating());
+        review.setAccuracyRating(request.accuracyRating());
+        review.setValueForMoneyRating(request.valueForMoneyRating());
+        review.setReviewText(normalizeOptionalText(request.reviewText()));
+    }
+
     public PropertyReviewResponse toResponse(
             PropertyReview review,
             long likeCount,
