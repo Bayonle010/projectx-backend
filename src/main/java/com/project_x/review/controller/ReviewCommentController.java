@@ -48,6 +48,30 @@ public class ReviewCommentController {
         );
     }
 
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse> updateComment(
+            @PathVariable UUID commentId,
+            @Valid @RequestBody SaveReviewCommentRequest request,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        ReviewCommentResponse response = commentService.update(
+                commentId,
+                request,
+                auth
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Comment updated",
+                        "Review comment updated successfully",
+                        response,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/{reviewId}/comments")
     public ResponseEntity<ApiResponse> getComments(
             @PathVariable UUID reviewId,

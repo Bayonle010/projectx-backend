@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ReviewCommentRepository
@@ -27,6 +28,13 @@ public interface ReviewCommentRepository
     long countByReview_IdAndStatus(
             UUID reviewId,
             ReviewCommentStatus status
+    );
+
+    @EntityGraph(attributePaths = {"author", "review"})
+    Optional<ReviewComment> findByIdAndStatusAndReview_Status(
+            UUID id,
+            ReviewCommentStatus status,
+            ReviewStatus reviewStatus
     );
 
     @EntityGraph(attributePaths = {"author"})

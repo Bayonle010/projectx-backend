@@ -15,6 +15,12 @@ public interface ReviewCommentService {
             AuthenticationIdentity auth
     );
 
+    ReviewCommentResponse update(
+            UUID commentId,
+            SaveReviewCommentRequest request,
+            AuthenticationIdentity auth
+    );
+
     Page<ReviewCommentResponse> getComments(
             UUID reviewId,
             Long page,

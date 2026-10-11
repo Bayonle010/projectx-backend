@@ -14,6 +14,11 @@ import java.util.UUID;
 public interface ReviewCommentLikeRepository
         extends JpaRepository<ReviewCommentLike, UUID> {
 
+    boolean existsByComment_IdAndUser_Id(
+            UUID commentId,
+            UUID userId
+    );
+
     long countByComment_Id(UUID commentId);
 
     long deleteByComment_IdAndUser_Id(

@@ -1,5 +1,6 @@
 package com.project_x.review.service.impl;
 
+import com.project_x.core.exception.AccessDeniedException;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.security.model.AuthenticationIdentity;
@@ -73,6 +74,44 @@ public class ReviewCommentServiceImpl
                 commentRepository.save(comment);
 
         return reviewMapper.toCommentResponse(savedComment);
+    }
+
+    @Override
+    @Transactional
+    public ReviewCommentResponse update(
+            UUID commentId,
+            SaveReviewCommentRequest request,
+            AuthenticationIdentity auth
+    ) {
+        UUID authenticatedUserId = UUID.fromString(auth.getId());
+
+        ReviewComment comment = commentRepository
+                .findByIdAndStatusAndReview_Status(
+                        commentId,
+                        ReviewCommentStatus.ACTIVE,
+                        ReviewStatus.ACTIVE
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Review comment not found"
+                ));
+
+        if (!comment.getAuthor().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException(
+                    "You can only edit comments you created"
+            );
+        }
+
+        comment.setContent(request.content().trim());
+        ReviewComment savedComment = commentRepository.save(comment);
+
+        return reviewMapper.toCommentResponse(
+                savedComment,
+                commentLikeRepository.countByComment_Id(commentId),
+                commentLikeRepository.existsByComment_IdAndUser_Id(
+                        commentId,
+                        authenticatedUserId
+                )
+        );
     }
 
     @Override
