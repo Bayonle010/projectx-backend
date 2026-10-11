@@ -20,4 +20,9 @@ public interface PropertyReviewCommandService {
             SavePropertyReviewRequest request,
             AuthenticationIdentity auth
     );
+
+    void delete(
+            UUID reviewId,
+            AuthenticationIdentity auth
+    );
 }

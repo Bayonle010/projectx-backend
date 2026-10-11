@@ -98,6 +98,25 @@ public class PropertyReviewController {
         );
     }
 
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse> delete(
+            @PathVariable UUID reviewId,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        commandService.delete(reviewId, auth);
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Review deleted",
+                        "Property review deleted successfully",
+                        null,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/listings/{listingId}")
     public ResponseEntity<ApiResponse> getListingReviews(
             @PathVariable UUID listingId,

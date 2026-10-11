@@ -119,4 +119,28 @@ public class PropertyReviewCommandServiceImpl
                 )
         );
     }
+
+    @Override
+    @Transactional
+    public void delete(
+            UUID reviewId,
+            AuthenticationIdentity auth
+    ) {
+        UUID reviewerId = UUID.fromString(auth.getId());
+
+        PropertyReview review = reviewRepository
+                .findByIdAndStatus(reviewId, ReviewStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Property review not found"
+                ));
+
+        if (!review.getReviewer().getId().equals(reviewerId)) {
+            throw new AccessDeniedException(
+                    "You can only delete reviews you created"
+            );
+        }
+
+        review.setStatus(ReviewStatus.DELETED);
+        reviewRepository.save(review);
+    }
 }
