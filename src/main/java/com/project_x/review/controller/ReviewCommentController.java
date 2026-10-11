@@ -72,6 +72,25 @@ public class ReviewCommentController {
         );
     }
 
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse> deleteComment(
+            @PathVariable UUID commentId,
+            @RequestAttribute("AUTH_IDENTITY")
+            AuthenticationIdentity auth
+    ) {
+        commentService.delete(commentId, auth);
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUtil.success(
+                        0,
+                        "Comment deleted",
+                        "Review comment deleted successfully",
+                        null,
+                        null
+                )
+        );
+    }
+
     @GetMapping("/{reviewId}/comments")
     public ResponseEntity<ApiResponse> getComments(
             @PathVariable UUID reviewId,

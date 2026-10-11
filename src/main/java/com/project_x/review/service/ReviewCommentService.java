@@ -21,6 +21,11 @@ public interface ReviewCommentService {
             AuthenticationIdentity auth
     );
 
+    void delete(
+            UUID commentId,
+            AuthenticationIdentity auth
+    );
+
     Page<ReviewCommentResponse> getComments(
             UUID reviewId,
             Long page,

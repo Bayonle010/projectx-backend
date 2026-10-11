@@ -115,6 +115,34 @@ public class ReviewCommentServiceImpl
     }
 
     @Override
+    @Transactional
+    public void delete(
+            UUID commentId,
+            AuthenticationIdentity auth
+    ) {
+        UUID authenticatedUserId = UUID.fromString(auth.getId());
+
+        ReviewComment comment = commentRepository
+                .findByIdAndStatusAndReview_Status(
+                        commentId,
+                        ReviewCommentStatus.ACTIVE,
+                        ReviewStatus.ACTIVE
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Review comment not found"
+                ));
+
+        if (!comment.getAuthor().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException(
+                    "You can only delete comments you created"
+            );
+        }
+
+        comment.setStatus(ReviewCommentStatus.DELETED);
+        commentRepository.save(comment);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<ReviewCommentResponse> getComments(
             UUID reviewId,
