@@ -51,7 +51,7 @@ public class ReviewCommentController {
     @GetMapping("/{reviewId}/comments")
     public ResponseEntity<ApiResponse> getComments(
             @PathVariable UUID reviewId,
-            @RequestParam(defaultValue = "0") Long page,
+            @RequestParam(defaultValue = "1") Long page,
             @RequestParam(defaultValue = "20") Long pageSize,
             @RequestAttribute(value = "AUTH_IDENTITY", required = false)
             AuthenticationIdentity auth

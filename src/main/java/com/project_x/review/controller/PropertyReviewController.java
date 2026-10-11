@@ -101,7 +101,7 @@ public class PropertyReviewController {
     @GetMapping("/listings/{listingId}")
     public ResponseEntity<ApiResponse> getListingReviews(
             @PathVariable UUID listingId,
-            @RequestParam(defaultValue = "0") Long page,
+            @RequestParam(defaultValue = "1") Long page,
             @RequestParam(defaultValue = "20") Long pageSize,
             @RequestAttribute(value = "AUTH_IDENTITY", required = false)
             AuthenticationIdentity auth
