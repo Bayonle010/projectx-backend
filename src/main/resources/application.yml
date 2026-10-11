@@ -1,5 +1,8 @@
 server:
   port: 8000
+  # Honour X-Forwarded-* headers from reverse proxies so generated URLs use
+  # the original public scheme and host (for example, HTTPS OAuth callbacks).
+  forward-headers-strategy: framework
 
 spring:
   application:
