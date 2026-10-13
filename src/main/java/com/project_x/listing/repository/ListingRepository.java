@@ -1,5 +1,6 @@
 package com.project_x.listing.repository;
 
+import com.project_x.coverage.projection.StateCoverageCountProjection;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.enums.ListingStatus;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -106,5 +108,20 @@ public interface ListingRepository
     long countByOwner_IdAndStatus(
             UUID ownerId,
             ListingStatus status
+    );
+
+    @Query("""
+            SELECT
+                listing.state.id AS stateId,
+                listing.state.name AS stateName,
+                COUNT(listing.id) AS availableListingCount
+            FROM Listing listing
+            WHERE listing.status = :status
+              AND listing.state IS NOT NULL
+            GROUP BY listing.state.id, listing.state.name
+            ORDER BY listing.state.name ASC
+            """)
+    List<StateCoverageCountProjection> findStateCoverageByStatus(
+            @Param("status") ListingStatus status
     );
 }

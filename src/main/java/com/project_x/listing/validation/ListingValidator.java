@@ -166,10 +166,6 @@ public class ListingValidator {
                 "Rent payment frequency is required"
         );
 
-        require(
-                !isBlank(listing.getProofOfOwnershipUrl()),
-                "Proof of ownership is required"
-        );
 
         require(
                 listing.getImages() != null
