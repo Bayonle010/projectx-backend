@@ -5,9 +5,11 @@ import com.project_x.core.response.ResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -26,10 +28,15 @@ public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
+        String message = authException instanceof BadCredentialsException
+                && StringUtils.hasText(authException.getMessage())
+                ? authException.getMessage()
+                : "Authentication is required. Please log in.";
+
         ApiResponse apiResponse = ResponseUtil.error(
                 HttpServletResponse.SC_UNAUTHORIZED,
+                message,
                 "Unauthorized",
-                authException.getMessage(),
                 null
         );
 

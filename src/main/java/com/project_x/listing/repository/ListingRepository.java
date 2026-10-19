@@ -95,6 +95,14 @@ public interface ListingRepository
             Pageable pageable
     );
 
+    @EntityGraph(attributePaths = {
+            "state",
+            "lga",
+            "owner",
+            "propertyType"
+    })
+    Page<Listing> findByStatus(ListingStatus status, Pageable pageable);
+
     boolean existsByPropertyType_Id(UUID propertyTypeId);
 
     boolean existsByVideoPublicId(String videoPublicId);

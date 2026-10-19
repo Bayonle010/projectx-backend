@@ -3,8 +3,6 @@ package com.project_x.core.security;
 import com.project_x.core.exception.InvalidCredentialException;
 import com.project_x.core.security.model.AuthenticationIdentity;
 import com.project_x.user.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.*;
@@ -20,8 +18,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class JwtUtil {
-
-    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
     private static final long ACCESS_TOKEN_DURATION_FOR_USER_IN_SEC =1 * 60 * 60;  // set to 1 hour
 
@@ -139,8 +135,7 @@ public class JwtUtil {
         try {
             return jwtDecoder.decode(token);
         } catch (JwtException e) {
-            log.error("Failed to decode JWT token", e);
-            throw new InvalidCredentialException("Invalid JWT token");
+            throw new InvalidCredentialException("Invalid or expired token");
         }
     }
 

@@ -63,6 +63,12 @@ spring:
 app:
   base-url: ${APP_BASE_URL}
 
+  jwt:
+    # Base64-encoded X.509 public key and PKCS#8 private key. Configure these
+    # in persistent environments so issued tokens survive app restarts.
+    public-key-base64: ${JWT_PUBLIC_KEY_BASE64:}
+    private-key-base64: ${JWT_PRIVATE_KEY_BASE64:}
+
   media:
     # Keep this at or below the maximum upload size allowed by your Cloudinary account.
     max-video-bytes: ${MAX_VIDEO_UPLOAD_BYTES:524288000}
