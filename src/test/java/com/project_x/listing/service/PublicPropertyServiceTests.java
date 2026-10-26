@@ -3,6 +3,7 @@ package com.project_x.listing.service;
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
 import com.project_x.listing.builder.PublicPropertyResponseBuilder;
+import com.project_x.listing.dto.response.PublicPropertyDetailsResponse;
 import com.project_x.listing.dto.response.PublicPropertyResponse;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
@@ -21,6 +22,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -94,6 +96,53 @@ class PublicPropertyServiceTests {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().coverImageUrl())
                 .isEqualTo("https://images.example/cover.jpg");
+    }
+
+    @Test
+    void fetchesOnlyPublishedPropertyAndHidesUnsharedExactAddress() {
+        UUID listingId = UUID.randomUUID();
+        Listing listing = listing(listingId);
+        listing.setShareAddressWithSeekers(false);
+        listing.setAddressLine("12 Private Street");
+        listing.setLandmark("Private landmark");
+        listing.setLatitude(6.6018);
+        listing.setLongitude(3.3515);
+
+        AtomicReference<UUID> requestedId = new AtomicReference<>();
+        AtomicReference<ListingStatus> requestedStatus =
+                new AtomicReference<>();
+
+        ListingRepository listingRepository = repository(
+                ListingRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("findByIdAndStatus")) {
+                        requestedId.set((UUID) arguments[0]);
+                        requestedStatus.set((ListingStatus) arguments[1]);
+                        return Optional.of(listing);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+
+        PublicPropertyDetailsResponse result =
+                new PublicPropertyServiceImpl(
+                        listingRepository,
+                        repository(
+                                ListingImageRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        ),
+                        new PublicPropertyResponseBuilder()
+                ).fetchPublishedProperty(listingId);
+
+        assertThat(requestedId.get()).isEqualTo(listingId);
+        assertThat(requestedStatus.get())
+                .isEqualTo(ListingStatus.PUBLISHED);
+        assertThat(result.exactAddressShared()).isFalse();
+        assertThat(result.addressLine()).isNull();
+        assertThat(result.landmark()).isNull();
+        assertThat(result.latitude()).isNull();
+        assertThat(result.longitude()).isNull();
     }
 
     private Listing listing(UUID listingId) {
