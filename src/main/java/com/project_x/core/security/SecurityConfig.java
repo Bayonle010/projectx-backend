@@ -71,6 +71,13 @@ public class SecurityConfig {
                                 "/api/v1/reviews/*",
                                 "/api/v1/reviews/*/comments",
                                 "/api/v1/coverage/**",
+                                "/api/v1/locations/**",
+                                "/api/v1/amenities",
+                                "/api/v1/amenities/*",
+                                "/api/v1/property-types",
+                                "/api/v1/property-types/*",
+                                "/api/v1/water-sources",
+                                "/api/v1/water-sources/*",
                                 "/api/v1/properties",
                                 "/api/v1/properties/**"
                         ).permitAll()

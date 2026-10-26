@@ -9,7 +9,6 @@ public record PublicPropertyOwnerResponse(
         UUID id,
         String firstName,
         String lastName,
-        String avatar,
-        boolean emailVerified
+        String avatar
 ) {
 }

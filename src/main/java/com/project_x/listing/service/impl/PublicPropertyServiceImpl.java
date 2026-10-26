@@ -1,7 +1,9 @@
 package com.project_x.listing.service.impl;
 
 import com.project_x.core.paginationhelper.PaginationAdapters;
+import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.listing.builder.PublicPropertyResponseBuilder;
+import com.project_x.listing.dto.response.PublicPropertyDetailsResponse;
 import com.project_x.listing.dto.response.PublicPropertyResponse;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
@@ -45,6 +47,19 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
         Map<UUID, String> coverImageUrls = fetchCoverImageUrls(listings.getContent());
 
         return listings.map(listing -> responseBuilder.toResponse(listing, coverImageUrls.get(listing.getId())));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PublicPropertyDetailsResponse fetchPublishedProperty(
+            UUID propertyId
+    ) {
+        Listing listing = listingRepository.findByIdAndStatus(
+                        propertyId,
+                        ListingStatus.PUBLISHED
+                ).orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        return responseBuilder.toDetailsResponse(listing);
     }
 
     private Map<UUID, String> fetchCoverImageUrls(List<Listing> listings) {
