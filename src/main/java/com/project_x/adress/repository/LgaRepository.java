@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface LgaRepository extends JpaRepository<Lga, UUID> {
     List<Lga> findByStateIdOrderByNameAsc(UUID stateId);
+
+    boolean existsByIdAndState_Id(UUID id, UUID stateId);
 }

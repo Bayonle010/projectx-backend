@@ -6,6 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -48,6 +51,38 @@ class GlobalExceptionHandlerRequestBindingTests {
         assertEquals(
                 "Invalid value for request parameter 'fileSize'. Expected a valid number",
                 response.getBody().getMessage()
+        );
+    }
+
+    @Test
+    void invalidFilterCollectionValueReturnsFriendlyBadRequest() {
+        MethodArgumentNotValidException exception =
+                mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
+        FieldError fieldError = new FieldError(
+                "publicPropertyFilterRequest",
+                "toiletCounts",
+                "3-",
+                false,
+                new String[]{"typeMismatch.toiletCounts", "typeMismatch"},
+                null,
+                "Failed to convert property value"
+        );
+
+        when(exception.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getFieldError()).thenReturn(fieldError);
+
+        ResponseEntity<ApiResponse> response =
+                handler.handleValidationException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(
+                "Toilet counts must contain only whole numbers: 1, 2, 3, or 4",
+                response.getBody().getMessage()
+        );
+        assertEquals(
+                "Invalid value for field 'toiletCounts'",
+                response.getBody().getDetails()
         );
     }
 

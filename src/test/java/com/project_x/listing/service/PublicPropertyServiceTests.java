@@ -2,7 +2,11 @@ package com.project_x.listing.service;
 
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
+import com.project_x.adress.repository.LgaRepository;
+import com.project_x.adress.repository.StateRepository;
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.listing.builder.PublicPropertyResponseBuilder;
+import com.project_x.listing.dto.request.PublicPropertyFilterRequest;
 import com.project_x.listing.dto.response.PublicPropertyDetailsResponse;
 import com.project_x.listing.dto.response.PublicPropertyResponse;
 import com.project_x.listing.entity.Listing;
@@ -11,7 +15,9 @@ import com.project_x.listing.entity.PropertyType;
 import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingImageRepository;
 import com.project_x.listing.repository.ListingRepository;
+import com.project_x.listing.repository.PropertyTypeRepository;
 import com.project_x.listing.service.impl.PublicPropertyServiceImpl;
+import com.project_x.listing.validation.PublicPropertyFilterValidator;
 import com.project_x.user.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -23,11 +29,13 @@ import java.lang.reflect.Proxy;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PublicPropertyServiceTests {
 
@@ -35,8 +43,6 @@ class PublicPropertyServiceTests {
     void fetchesOnlyPublishedPropertiesAndLoadsCoversInOneBatch() {
         UUID listingId = UUID.randomUUID();
         Listing listing = listing(listingId);
-        AtomicReference<ListingStatus> requestedStatus =
-                new AtomicReference<>();
         AtomicReference<Pageable> requestedPageable =
                 new AtomicReference<>();
         AtomicReference<List<UUID>> coverListingIds =
@@ -46,8 +52,11 @@ class PublicPropertyServiceTests {
         ListingRepository listingRepository = repository(
                 ListingRepository.class,
                 (proxy, method, arguments) -> {
-                    if (method.getName().equals("findByStatus")) {
-                        requestedStatus.set((ListingStatus) arguments[0]);
+                    if (
+                            method.getName().equals("findAll")
+                                    && arguments.length == 2
+                                    && arguments[1] instanceof Pageable
+                    ) {
                         requestedPageable.set((Pageable) arguments[1]);
                         return new PageImpl<>(
                                 List.of(listing),
@@ -80,15 +89,14 @@ class PublicPropertyServiceTests {
                 }
         );
 
-        Page<PublicPropertyResponse> result =
-                new PublicPropertyServiceImpl(
-                        listingRepository,
-                        imageRepository,
-                        new PublicPropertyResponseBuilder()
-                ).fetchPublishedProperties(1L, 20L);
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
 
-        assertThat(requestedStatus.get())
-                .isEqualTo(ListingStatus.PUBLISHED);
+        Page<PublicPropertyResponse> result = service(
+                listingRepository,
+                imageRepository
+        ).fetchPublishedProperties(filter);
+
         assertThat(requestedPageable.get().getPageNumber()).isZero();
         assertThat(requestedPageable.get().getPageSize()).isEqualTo(20);
         assertThat(coverQueries.get()).isEqualTo(1);
@@ -124,16 +132,14 @@ class PublicPropertyServiceTests {
                 }
         );
 
-        PublicPropertyDetailsResponse result =
-                new PublicPropertyServiceImpl(
-                        listingRepository,
-                        repository(
-                                ListingImageRepository.class,
-                                (proxy, method, arguments) ->
-                                        defaultValue(method.getReturnType())
-                        ),
-                        new PublicPropertyResponseBuilder()
-                ).fetchPublishedProperty(listingId);
+        PublicPropertyDetailsResponse result = service(
+                listingRepository,
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        ).fetchPublishedProperty(listingId);
 
         assertThat(requestedId.get()).isEqualTo(listingId);
         assertThat(requestedStatus.get())
@@ -143,6 +149,101 @@ class PublicPropertyServiceTests {
         assertThat(result.landmark()).isNull();
         assertThat(result.latitude()).isNull();
         assertThat(result.longitude()).isNull();
+    }
+
+    @Test
+    void rejectsLgaFilterWhenStateIsMissing() {
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
+        filter.setLgaId(UUID.randomUUID());
+
+        PublicPropertyServiceImpl service = service(
+                repository(
+                        ListingRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                ),
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        );
+
+        assertThatThrownBy(() ->
+                service.fetchPublishedProperties(filter)
+        )
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(
+                        "Select a state before selecting a local government area"
+                );
+    }
+
+    @Test
+    void acceptsZeroAsStudioBedroomFilter() {
+        AtomicInteger listingQueries = new AtomicInteger();
+
+        ListingRepository listingRepository = repository(
+                ListingRepository.class,
+                (proxy, method, arguments) -> {
+                    if (
+                            method.getName().equals("findAll")
+                                    && arguments.length == 2
+                                    && arguments[1] instanceof Pageable pageable
+                    ) {
+                        listingQueries.incrementAndGet();
+                        return Page.empty(pageable);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
+        filter.setBedroomCounts(Set.of(0));
+
+        Page<PublicPropertyResponse> result = service(
+                listingRepository,
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        ).fetchPublishedProperties(filter);
+
+        assertThat(listingQueries.get()).isEqualTo(1);
+        assertThat(result).isEmpty();
+    }
+
+    private PublicPropertyServiceImpl service(
+            ListingRepository listingRepository,
+            ListingImageRepository imageRepository
+    ) {
+        PublicPropertyFilterValidator filterValidator =
+                new PublicPropertyFilterValidator(
+                        repository(
+                                StateRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        ),
+                        repository(
+                                LgaRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        ),
+                        repository(
+                                PropertyTypeRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        )
+                );
+
+        return new PublicPropertyServiceImpl(
+                listingRepository,
+                imageRepository,
+                new PublicPropertyResponseBuilder(),
+                filterValidator
+        );
     }
 
     private Listing listing(UUID listingId) {

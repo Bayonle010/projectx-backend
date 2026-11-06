@@ -3,6 +3,7 @@ package com.project_x.listing.service.impl;
 import com.project_x.core.paginationhelper.PaginationAdapters;
 import com.project_x.core.exception.ResourceNotFoundException;
 import com.project_x.listing.builder.PublicPropertyResponseBuilder;
+import com.project_x.listing.dto.request.PublicPropertyFilterRequest;
 import com.project_x.listing.dto.response.PublicPropertyDetailsResponse;
 import com.project_x.listing.dto.response.PublicPropertyResponse;
 import com.project_x.listing.entity.Listing;
@@ -11,6 +12,8 @@ import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingImageRepository;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.service.PublicPropertyService;
+import com.project_x.listing.specification.PublicPropertySpecification;
+import com.project_x.listing.validation.PublicPropertyFilterValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,16 +35,25 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
     private final ListingRepository listingRepository;
     private final ListingImageRepository listingImageRepository;
     private final PublicPropertyResponseBuilder responseBuilder;
+    private final PublicPropertyFilterValidator filterValidator;
 
     @Override
     @Transactional(readOnly = true)
     public Page<PublicPropertyResponse> fetchPublishedProperties(
-            Long page,
-            Long pageSize
+            PublicPropertyFilterRequest filter
     ) {
-        Pageable pageable = PaginationAdapters.createPageRequestWithRecentFirstsSortOrder(page, pageSize);
+        filterValidator.validateAndNormalize(filter);
 
-        Page<Listing> listings = listingRepository.findByStatus(ListingStatus.PUBLISHED, pageable);
+        Pageable pageable = PaginationAdapters
+                .createPageRequestWithRecentFirstsSortOrder(
+                        filter.getPage(),
+                        filter.getPageSize()
+                );
+
+        Page<Listing> listings = listingRepository.findAll(
+                PublicPropertySpecification.matching(filter),
+                pageable
+        );
 
         Map<UUID, String> coverImageUrls = fetchCoverImageUrls(listings.getContent());
 
@@ -54,10 +65,8 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
     public PublicPropertyDetailsResponse fetchPublishedProperty(
             UUID propertyId
     ) {
-        Listing listing = listingRepository.findByIdAndStatus(
-                        propertyId,
-                        ListingStatus.PUBLISHED
-                ).orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+        Listing listing = listingRepository.findByIdAndStatus(propertyId, ListingStatus.PUBLISHED)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
 
         return responseBuilder.toDetailsResponse(listing);
     }
