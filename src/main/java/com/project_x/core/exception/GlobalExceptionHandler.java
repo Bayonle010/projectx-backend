@@ -5,6 +5,7 @@ import com.project_x.core.response.ResponseUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.InvalidParameterException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -201,6 +202,24 @@ public class GlobalExceptionHandler {
                 "Invalid value for request parameter '" + parameterName
                         + "'. Expected " + expectedType,
                 "Invalid request parameter",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<ApiResponse> handleInvalidParameterEncoding(
+            InvalidParameterException ex
+    ) {
+        log.warn("Invalid request parameter encoding: {}", ex.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Request parameters contain invalid URL encoding",
+                "Encode special characters before sending the request",
                 null
         );
 

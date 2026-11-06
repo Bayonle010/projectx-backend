@@ -2,6 +2,7 @@ package com.project_x.core.exception;
 
 import com.project_x.core.response.ApiResponse;
 import org.junit.jupiter.api.Test;
+import org.apache.tomcat.util.http.InvalidParameterException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -82,6 +83,28 @@ class GlobalExceptionHandlerRequestBindingTests {
         );
         assertEquals(
                 "Invalid value for field 'toiletCounts'",
+                response.getBody().getDetails()
+        );
+    }
+
+    @Test
+    void malformedQueryEncodingReturnsFriendlyBadRequest() {
+        InvalidParameterException exception =
+                mock(InvalidParameterException.class);
+        when(exception.getMessage()).thenReturn(
+                "Character decoding failed for neighbourhood"
+        );
+
+        ResponseEntity<ApiResponse> response =
+                handler.handleInvalidParameterEncoding(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(
+                "Request parameters contain invalid URL encoding",
+                response.getBody().getMessage()
+        );
+        assertEquals(
+                "Encode special characters before sending the request",
                 response.getBody().getDetails()
         );
     }
