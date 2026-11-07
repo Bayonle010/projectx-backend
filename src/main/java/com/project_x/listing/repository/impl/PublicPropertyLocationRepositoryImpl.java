@@ -51,6 +51,8 @@ public class PublicPropertyLocationRepositoryImpl
         parameters.addValue("hasCoordinates", hasCoordinates);
         parameters.addValue("nearLatitude", filter.getNearLatitude(), Types.DOUBLE);
         parameters.addValue("nearLongitude", filter.getNearLongitude(), Types.DOUBLE);
+        parameters.addValue("hasNearState", filter.getNearStateId() != null);
+        parameters.addValue("hasNearLga", filter.getNearLgaId() != null);
         parameters.addValue("nearStateId", filter.getNearStateId(), Types.OTHER);
         parameters.addValue("nearLgaId", filter.getNearLgaId(), Types.OTHER);
         parameters.addValue("nearbyRadiusMeters", nearbyRadiusMeters);
@@ -68,8 +70,8 @@ public class PublicPropertyLocationRepositoryImpl
                             )::geography,
                             :nearbyRadiusMeters
                         ) THEN 0
-                    WHEN :nearLgaId IS NOT NULL AND l.lga_id = :nearLgaId THEN 1
-                    WHEN :nearStateId IS NOT NULL AND l.state_id = :nearStateId THEN 2
+                    WHEN :hasNearLga AND l.lga_id = :nearLgaId THEN 1
+                    WHEN :hasNearState AND l.state_id = :nearStateId THEN 2
                     ELSE 3
                 END
                 """;
