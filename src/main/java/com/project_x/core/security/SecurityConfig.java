@@ -78,8 +78,8 @@ public class SecurityConfig {
                                 "/api/v1/property-types/*",
                                 "/api/v1/water-sources",
                                 "/api/v1/water-sources/*",
-                                "/api/v1/properties",
-                                "/api/v1/properties/**"
+                                "/api/v1/available-properties",
+                                "/api/v1/available-properties/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
