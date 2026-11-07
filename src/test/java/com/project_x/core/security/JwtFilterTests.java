@@ -31,7 +31,7 @@ class JwtFilterTests {
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 
-        filter.doFilterInternal(request, response, chain);
+        filter.doFilter(request, response, chain);
 
         assertThat(response.getStatus()).isEqualTo(401);
         assertThat(response.getContentAsString()).contains(
@@ -48,10 +48,66 @@ class JwtFilterTests {
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 
-        filter.doFilterInternal(request, response, chain);
+        filter.doFilter(request, response, chain);
 
         assertThat(chain.getRequest()).isSameAs(request);
         assertThat(chain.getResponse()).isSameAs(response);
+    }
+
+    @Test
+    void ignoresInvalidAuthorizationTokenOnPublicGetEndpoint()
+            throws Exception {
+        JwtFilter filter = filterWithRejectingDecoder();
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                "GET",
+                "/api/v1/locations/states"
+        );
+        request.addHeader("Authorization", "Bearer invalid-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(chain.getRequest()).isSameAs(request);
+        assertThat(chain.getResponse()).isSameAs(response);
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void ignoresInvalidAuthorizationTokenOnPublicPostEndpoint()
+            throws Exception {
+        JwtFilter filter = filterWithRejectingDecoder();
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                "POST",
+                "/api/v1/auth/login"
+        );
+        request.addHeader("Authorization", "Bearer invalid-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(chain.getRequest()).isSameAs(request);
+        assertThat(chain.getResponse()).isSameAs(response);
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void stillRejectsInvalidAuthorizationTokenOnProtectedMethod()
+            throws Exception {
+        JwtFilter filter = filterWithRejectingDecoder();
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                "POST",
+                "/api/v1/amenities"
+        );
+        request.addHeader("Authorization", "Bearer invalid-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(401);
+        assertThat(chain.getRequest()).isNull();
     }
 
     private JwtFilter filterWithRejectingDecoder() {
