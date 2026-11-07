@@ -14,6 +14,7 @@ import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.repository.PublicPropertyLocationRepository;
 import com.project_x.listing.repository.PublicPropertySearchHit;
 import com.project_x.listing.service.PublicPropertyService;
+import com.project_x.listing.service.NearbyLocationContextResolver;
 import com.project_x.listing.specification.PublicPropertySpecification;
 import com.project_x.listing.validation.PublicPropertyFilterValidator;
 import lombok.RequiredArgsConstructor;
@@ -40,13 +41,14 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
     private final PublicPropertyResponseBuilder responseBuilder;
     private final PublicPropertyFilterValidator filterValidator;
     private final PublicPropertyLocationRepository locationRepository;
+    private final NearbyLocationContextResolver locationContextResolver;
 
     @Override
-    @Transactional(readOnly = true)
     public Page<PublicPropertyResponse> fetchPublishedProperties(
             PublicPropertyFilterRequest filter
     ) {
         filterValidator.validateAndNormalize(filter);
+        resolveMissingLocationContext(filter);
 
         Pageable pageable = PaginationAdapters
                 .createPageRequestWithRecentFirstsSortOrder(
@@ -113,6 +115,27 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
         return filter.getNearLatitude() != null
                 || filter.getNearStateId() != null
                 || filter.getNearLgaId() != null;
+    }
+
+    private void resolveMissingLocationContext(
+            PublicPropertyFilterRequest filter
+    ) {
+        if (filter.getNearLatitude() == null || (filter.getNearStateId() != null && filter.getNearLgaId() != null)) {
+            return;
+        }
+
+        NearbyLocationContextResolver.LocationContext context = locationContextResolver.resolve(filter.getNearLatitude(), filter.getNearLongitude());
+
+        if (filter.getNearStateId() == null) {
+            filter.setNearStateId(context.stateId());
+        }
+
+        UUID effectiveStateId = filter.getNearStateId();
+        if (filter.getNearLgaId() == null
+                && effectiveStateId != null
+                && effectiveStateId.equals(context.stateId())) {
+            filter.setNearLgaId(context.lgaId());
+        }
     }
 
     @Override

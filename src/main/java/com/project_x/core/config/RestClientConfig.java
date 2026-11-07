@@ -124,4 +124,18 @@ public class RestClientConfig {
                 .build();
     }
 
+    @Bean
+    @Qualifier("googleGeocodingRestClient")
+    public RestClient googleGeocodingRestClient(
+            @Value("${google.maps.geocoding-base-url:https://geocode.googleapis.com/v4}") String baseUrl,
+            @Value("${google.maps.connect-timeout-ms:3000}") int connectTimeoutMs,
+            @Value("${google.maps.response-timeout-ms:5000}") int responseTimeoutMs
+    ) {
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(createRequestFactory(connectTimeoutMs, responseTimeoutMs))
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
+
 }

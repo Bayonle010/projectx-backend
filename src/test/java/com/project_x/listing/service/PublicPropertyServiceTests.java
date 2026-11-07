@@ -270,6 +270,63 @@ class PublicPropertyServiceTests {
         assertThat(response.locationMatchLevel()).isEqualTo(LocationMatchLevel.NEARBY);
     }
 
+    @Test
+    void resolvesMissingStateAndLgaFromNearbyCoordinates() {
+        UUID stateId = UUID.randomUUID();
+        UUID lgaId = UUID.randomUUID();
+        AtomicInteger resolutionCalls = new AtomicInteger();
+        AtomicReference<PublicPropertyFilterRequest> searchedFilter =
+                new AtomicReference<>();
+
+        NearbyLocationContextResolver resolver = (latitude, longitude) -> {
+            resolutionCalls.incrementAndGet();
+            assertThat(latitude).isEqualTo(6.6018);
+            assertThat(longitude).isEqualTo(3.3515);
+            return new NearbyLocationContextResolver.LocationContext(
+                    stateId,
+                    lgaId
+            );
+        };
+
+        PublicPropertyLocationRepository locationRepository = repository(
+                PublicPropertyLocationRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("search")) {
+                        searchedFilter.set(
+                                (PublicPropertyFilterRequest) arguments[0]
+                        );
+                        return Page.empty((Pageable) arguments[1]);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
+        filter.setNearLatitude(6.6018);
+        filter.setNearLongitude(3.3515);
+
+        service(
+                repository(
+                        ListingRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                ),
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) -> List.of()
+                ),
+                locationRepository,
+                resolver
+        ).fetchPublishedProperties(filter);
+
+        assertThat(resolutionCalls.get()).isEqualTo(1);
+        assertThat(searchedFilter.get().getNearStateId())
+                .isEqualTo(stateId);
+        assertThat(searchedFilter.get().getNearLgaId())
+                .isEqualTo(lgaId);
+    }
+
     private PublicPropertyServiceImpl service(
             ListingRepository listingRepository,
             ListingImageRepository imageRepository
@@ -289,6 +346,22 @@ class PublicPropertyServiceTests {
             ListingRepository listingRepository,
             ListingImageRepository imageRepository,
             PublicPropertyLocationRepository locationRepository
+    ) {
+        return service(
+                listingRepository,
+                imageRepository,
+                locationRepository,
+                (latitude, longitude) ->
+                        NearbyLocationContextResolver.LocationContext
+                                .unresolved()
+        );
+    }
+
+    private PublicPropertyServiceImpl service(
+            ListingRepository listingRepository,
+            ListingImageRepository imageRepository,
+            PublicPropertyLocationRepository locationRepository,
+            NearbyLocationContextResolver locationContextResolver
     ) {
         PublicPropertyFilterValidator filterValidator =
                 new PublicPropertyFilterValidator(
@@ -314,7 +387,8 @@ class PublicPropertyServiceTests {
                 imageRepository,
                 new PublicPropertyResponseBuilder(),
                 filterValidator,
-                locationRepository
+                locationRepository,
+                locationContextResolver
         );
     }
 
