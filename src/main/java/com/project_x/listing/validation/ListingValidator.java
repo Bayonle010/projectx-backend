@@ -16,6 +16,9 @@ import java.util.Objects;
 @Component
 public class ListingValidator {
 
+    private static final int MINIMUM_PROPERTY_IMAGES = 6;
+    private static final int MAXIMUM_PROPERTY_IMAGES = 9;
+
     public void validateForDraftSave(SaveListingRequest request) {
         validateCoordinates(
                 request.latitude(),
@@ -36,6 +39,10 @@ public class ListingValidator {
          */
         if (request.images() != null) {
             validateRequestImages(request.images());
+            require(
+                    request.images().size() <= MAXIMUM_PROPERTY_IMAGES,
+                    "A maximum of 9 property images is allowed"
+            );
         }
     }
 
@@ -169,8 +176,9 @@ public class ListingValidator {
 
         require(
                 listing.getImages() != null
-                        && listing.getImages().size() == 9,
-                "Exactly 9 property images are required"
+                        && listing.getImages().size() >= MINIMUM_PROPERTY_IMAGES
+                        && listing.getImages().size() <= MAXIMUM_PROPERTY_IMAGES,
+                "Property images must contain between 6 and 9 images"
         );
 
         if (listing.getImages() != null) {
