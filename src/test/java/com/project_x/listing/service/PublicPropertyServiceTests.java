@@ -13,9 +13,12 @@ import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.entity.PropertyType;
 import com.project_x.listing.enums.ListingStatus;
+import com.project_x.listing.enums.LocationMatchLevel;
 import com.project_x.listing.repository.ListingImageRepository;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.repository.PropertyTypeRepository;
+import com.project_x.listing.repository.PublicPropertyLocationRepository;
+import com.project_x.listing.repository.PublicPropertySearchHit;
 import com.project_x.listing.service.impl.PublicPropertyServiceImpl;
 import com.project_x.listing.validation.PublicPropertyFilterValidator;
 import com.project_x.user.entity.User;
@@ -215,9 +218,77 @@ class PublicPropertyServiceTests {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    void usesNearbySearchAndReturnsDistanceWithoutExposingCoordinates() {
+        UUID listingId = UUID.randomUUID();
+        Listing listing = listing(listingId);
+        listing.setLatitude(6.6018);
+        listing.setLongitude(3.3515);
+
+        ListingRepository listingRepository = repository(
+                ListingRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("findByIdIn")) {
+                        return List.of(listing);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+        PublicPropertyLocationRepository locationRepository = repository(
+                PublicPropertyLocationRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("search")) {
+                        Pageable pageable = (Pageable) arguments[1];
+                        return new PageImpl<>(
+                                List.of(new PublicPropertySearchHit(
+                                        listingId,
+                                        1250L,
+                                        LocationMatchLevel.EXACT
+                                )),
+                                pageable,
+                                1
+                        );
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+        PublicPropertyFilterRequest filter = new PublicPropertyFilterRequest();
+        filter.setNearLatitude(6.6000);
+        filter.setNearLongitude(3.3500);
+
+        Page<PublicPropertyResponse> result = service(
+                listingRepository,
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) -> List.of()
+                ),
+                locationRepository
+        ).fetchPublishedProperties(filter);
+
+        PublicPropertyResponse response = result.getContent().getFirst();
+        assertThat(response.distanceMeters()).isEqualTo(1250L);
+        assertThat(response.locationMatchLevel()).isEqualTo(LocationMatchLevel.EXACT);
+    }
+
     private PublicPropertyServiceImpl service(
             ListingRepository listingRepository,
             ListingImageRepository imageRepository
+    ) {
+        return service(
+                listingRepository,
+                imageRepository,
+                repository(
+                        PublicPropertyLocationRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        );
+    }
+
+    private PublicPropertyServiceImpl service(
+            ListingRepository listingRepository,
+            ListingImageRepository imageRepository,
+            PublicPropertyLocationRepository locationRepository
     ) {
         PublicPropertyFilterValidator filterValidator =
                 new PublicPropertyFilterValidator(
@@ -242,7 +313,8 @@ class PublicPropertyServiceTests {
                 listingRepository,
                 imageRepository,
                 new PublicPropertyResponseBuilder(),
-                filterValidator
+                filterValidator,
+                locationRepository
         );
     }
 

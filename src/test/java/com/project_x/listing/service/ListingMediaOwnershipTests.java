@@ -19,6 +19,7 @@ import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.impl.ListingServiceImpl;
+import com.project_x.listing.service.ListingLocationVerificationService;
 import com.project_x.listing.validation.ListingValidator;
 import com.project_x.user.entity.User;
 import com.project_x.user.service.UserService;
@@ -63,7 +64,9 @@ class ListingMediaOwnershipTests {
         service = new ListingServiceImpl(listings, mock(ListingValidator.class), users,
                 new ListingResponseBuilder(), mock(LocationService.class),
                 mock(ListingReferenceResolver.class), mock(ListingDescriptionGenerator.class),
-                mock(ListingFriendlyIdGenerator.class), media, usages);
+                mock(ListingFriendlyIdGenerator.class), media, usages,
+                mock(ListingLocationVerificationService.class));
+
     }
 
     @Test

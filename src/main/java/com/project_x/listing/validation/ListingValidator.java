@@ -243,6 +243,12 @@ public class ListingValidator {
             Double latitude,
             Double longitude
     ) {
+        if ((latitude == null) != (longitude == null)) {
+            throw new BadRequestException(
+                    "Latitude and longitude must be provided together"
+            );
+        }
+
         if (
                 latitude != null
                         && (latitude < -90 || latitude > 90)

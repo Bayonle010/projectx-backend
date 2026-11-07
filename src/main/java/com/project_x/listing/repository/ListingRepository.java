@@ -115,6 +115,14 @@ public interface ListingRepository
             ListingStatus status
     );
 
+    @EntityGraph(attributePaths = {
+            "state",
+            "lga",
+            "owner",
+            "propertyType"
+    })
+    List<Listing> findByIdIn(List<UUID> ids);
+
     boolean existsByPropertyType_Id(UUID propertyTypeId);
 
     boolean existsByVideoPublicId(String videoPublicId);

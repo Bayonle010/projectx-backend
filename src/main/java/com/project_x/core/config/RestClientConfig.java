@@ -108,4 +108,18 @@ public class RestClientConfig {
                 .build();
     }
 
+    @Bean
+    @Qualifier("googlePlacesRestClient")
+    public RestClient googlePlacesRestClient(
+            RestClient.Builder builder,
+            @Value("${google.maps.base-url:https://places.googleapis.com/v1}") String baseUrl,
+            @Value("${google.maps.connect-timeout-ms:3000}") int connectTimeoutMs,
+            @Value("${google.maps.response-timeout-ms:5000}") int responseTimeoutMs
+    ) {
+        return builder.clone()
+                .baseUrl(baseUrl)
+                .requestFactory(createRequestFactory(connectTimeoutMs, responseTimeoutMs))
+                .build();
+    }
+
 }

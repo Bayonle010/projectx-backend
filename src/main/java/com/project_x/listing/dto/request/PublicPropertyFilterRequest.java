@@ -32,6 +32,14 @@ public class PublicPropertyFilterRequest {
 
     private BigDecimal maxRent;
 
+    private Double nearLatitude;
+
+    private Double nearLongitude;
+
+    private UUID nearStateId;
+
+    private UUID nearLgaId;
+
     private Long page = 1L;
 
     private Long pageSize = 20L;

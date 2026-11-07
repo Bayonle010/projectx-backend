@@ -11,11 +11,14 @@ import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.enums.ListingStatus;
 import com.project_x.listing.repository.ListingImageRepository;
 import com.project_x.listing.repository.ListingRepository;
+import com.project_x.listing.repository.PublicPropertyLocationRepository;
+import com.project_x.listing.repository.PublicPropertySearchHit;
 import com.project_x.listing.service.PublicPropertyService;
 import com.project_x.listing.specification.PublicPropertySpecification;
 import com.project_x.listing.validation.PublicPropertyFilterValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +39,7 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
     private final ListingImageRepository listingImageRepository;
     private final PublicPropertyResponseBuilder responseBuilder;
     private final PublicPropertyFilterValidator filterValidator;
+    private final PublicPropertyLocationRepository locationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,14 +54,65 @@ public class PublicPropertyServiceImpl implements PublicPropertyService {
                         filter.getPageSize()
                 );
 
+        if (hasLocationContext(filter)) {
+            return fetchByLocation(filter, pageable);
+        }
+
         Page<Listing> listings = listingRepository.findAll(
-                PublicPropertySpecification.matching(filter),
-                pageable
-        );
+                    PublicPropertySpecification.matching(filter),
+                    pageable
+            );
 
         Map<UUID, String> coverImageUrls = fetchCoverImageUrls(listings.getContent());
 
         return listings.map(listing -> responseBuilder.toResponse(listing, coverImageUrls.get(listing.getId())));
+    }
+
+    private Page<PublicPropertyResponse> fetchByLocation(
+            PublicPropertyFilterRequest filter,
+            Pageable pageable
+    ) {
+        Page<PublicPropertySearchHit> hitPage = locationRepository.search(filter, pageable);
+
+        List<UUID> listingIds = hitPage.getContent().stream()
+                .map(PublicPropertySearchHit::listingId)
+                .toList();
+
+        Map<UUID, Listing> listingsById = listingIds.isEmpty()
+                ? Map.of()
+                : listingRepository.findByIdIn(listingIds).stream()
+                .collect(Collectors.toMap(Listing::getId, listing -> listing));
+
+        List<Listing> orderedListings = listingIds.stream()
+                .map(listingsById::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        Map<UUID, String> coverImageUrls = fetchCoverImageUrls(orderedListings);
+
+        List<PublicPropertyResponse> responses = hitPage.getContent().stream()
+                .map(hit -> {
+                    Listing listing = listingsById.get(hit.listingId());
+                    if (listing == null) {
+                        return null;
+                    }
+                    return responseBuilder.toResponse(
+                            listing,
+                            coverImageUrls.get(listing.getId()),
+                            hit.distanceMeters(),
+                            hit.locationMatchLevel()
+                    );
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        return new PageImpl<>(responses, pageable, hitPage.getTotalElements());
+    }
+
+    private boolean hasLocationContext(PublicPropertyFilterRequest filter) {
+        return filter.getNearLatitude() != null
+                || filter.getNearStateId() != null
+                || filter.getNearLgaId() != null;
     }
 
     @Override

@@ -29,6 +29,7 @@ import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.ListingService;
 import com.project_x.listing.service.ListingDescriptionGenerator;
 import com.project_x.listing.service.ListingFriendlyIdGenerator;
+import com.project_x.listing.service.ListingLocationVerificationService;
 import com.project_x.listing.validation.ListingValidator;
 import com.project_x.user.entity.User;
 import com.project_x.user.service.UserService;
@@ -55,6 +56,7 @@ public class ListingServiceImpl implements ListingService {
     private final ListingFriendlyIdGenerator listingFriendlyIdGenerator;
     private final MediaAssetService mediaAssetService;
     private final MediaAssetUsageService mediaAssetUsageService;
+    private final ListingLocationVerificationService locationVerificationService;
 
     @Override
     @Transactional
@@ -460,9 +462,23 @@ public class ListingServiceImpl implements ListingService {
         }
 
         if (request.placeId() != null) {
-            listing.setPlaceId(
-                    request.placeId().trim()
-            );
+            String placeId = request.placeId().trim();
+            listing.setPlaceId(placeId.isBlank() ? null : placeId);
+        }
+
+        if (request.latitude() != null
+                || request.longitude() != null
+                || request.placeId() != null) {
+            ListingLocationVerificationService.VerificationResult verification =
+                    locationVerificationService.verify(
+                            listing.getPlaceId(),
+                            listing.getLatitude(),
+                            listing.getLongitude()
+                    );
+            listing.setLatitude(verification.latitude());
+            listing.setLongitude(verification.longitude());
+            listing.setLocationVerificationStatus(verification.status());
+            listing.setLocationVerifiedAt(verification.verifiedAt());
         }
 
         if (request.shareAddressWithSeekers() != null) {

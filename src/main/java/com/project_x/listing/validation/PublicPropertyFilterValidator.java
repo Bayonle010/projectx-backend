@@ -32,6 +32,7 @@ public class PublicPropertyFilterValidator {
         normalizeNeighbourhood(filter);
         validatePagination(filter);
         validateLocation(filter);
+        validateNearbyLocation(filter);
         validatePropertyTypes(filter);
         validateCountSelections(filter);
         validateRentRange(filter);
@@ -89,6 +90,38 @@ public class PublicPropertyFilterValidator {
                         )
         ) {
             throw new BadRequestException("The selected local government area does not belong to the selected state");
+        }
+    }
+
+    private void validateNearbyLocation(PublicPropertyFilterRequest filter) {
+        boolean hasLatitude = filter.getNearLatitude() != null;
+        boolean hasLongitude = filter.getNearLongitude() != null;
+
+        if (hasLatitude != hasLongitude) {
+            throw new BadRequestException("Both nearLatitude and nearLongitude must be provided together");
+        }
+
+        if (hasLatitude && (filter.getNearLatitude() < -90 || filter.getNearLatitude() > 90)) {
+            throw new BadRequestException("nearLatitude must be between -90 and 90");
+        }
+
+        if (hasLongitude && (filter.getNearLongitude() < -180 || filter.getNearLongitude() > 180)) {
+            throw new BadRequestException("nearLongitude must be between -180 and 180");
+        }
+
+        if (filter.getNearLgaId() != null && filter.getNearStateId() == null) {
+            throw new BadRequestException("nearStateId is required when nearLgaId is provided");
+        }
+
+        if (filter.getNearStateId() != null && !stateRepository.existsById(filter.getNearStateId())) {
+            throw new BadRequestException("The nearby state does not exist");
+        }
+
+        if (filter.getNearLgaId() != null && !lgaRepository.existsByIdAndState_Id(
+                filter.getNearLgaId(),
+                filter.getNearStateId()
+        )) {
+            throw new BadRequestException("The nearby local government area does not belong to the nearby state");
         }
     }
 
