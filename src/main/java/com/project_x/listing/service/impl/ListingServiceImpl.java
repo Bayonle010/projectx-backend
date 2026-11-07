@@ -24,6 +24,7 @@ import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.entity.WaterSource;
 import com.project_x.listing.enums.ListingStatus;
+import com.project_x.listing.enums.LocationVerificationStatus;
 import com.project_x.listing.repository.ListingRepository;
 import com.project_x.listing.resolver.ListingReferenceResolver;
 import com.project_x.listing.service.ListingService;
@@ -116,6 +117,8 @@ public class ListingServiceImpl implements ListingService {
                     "Only draft listings can be submitted for review"
             );
         }
+
+        retryUnverifiedLocation(listing);
 
         /*
          * This is where property type and water source
@@ -331,6 +334,9 @@ public class ListingServiceImpl implements ListingService {
             SaveListingRequest request,
             UUID ownerId
     ) {
+
+        ListingLocationSnapshot locationBeforeChanges = ListingLocationSnapshot.from(listing);
+
         if (request.relationshipType() != null) {
             listing.setRelationshipType(
                     request.relationshipType()
@@ -453,33 +459,7 @@ public class ListingServiceImpl implements ListingService {
             );
         }
 
-        if (request.latitude() != null) {
-            listing.setLatitude(request.latitude());
-        }
-
-        if (request.longitude() != null) {
-            listing.setLongitude(request.longitude());
-        }
-
-        if (request.placeId() != null) {
-            String placeId = request.placeId().trim();
-            listing.setPlaceId(placeId.isBlank() ? null : placeId);
-        }
-
-        if (request.latitude() != null
-                || request.longitude() != null
-                || request.placeId() != null) {
-            ListingLocationVerificationService.VerificationResult verification =
-                    locationVerificationService.verify(
-                            listing.getPlaceId(),
-                            listing.getLatitude(),
-                            listing.getLongitude()
-                    );
-            listing.setLatitude(verification.latitude());
-            listing.setLongitude(verification.longitude());
-            listing.setLocationVerificationStatus(verification.status());
-            listing.setLocationVerifiedAt(verification.verifiedAt());
-        }
+        applyLocationChanges(listing, request, locationBeforeChanges);
 
         if (request.shareAddressWithSeekers() != null) {
             listing.setShareAddressWithSeekers(
@@ -564,6 +544,108 @@ public class ListingServiceImpl implements ListingService {
             List<MediaAsset> images = attachImages(listing, request.images(), ownerId);
             mediaAssetUsageService.replace(MediaEntityType.LISTING, listing.getId(),
                     MediaUsageType.IMAGE, images);
+        }
+    }
+
+    private void applyLocationChanges(Listing listing, SaveListingRequest request, ListingLocationSnapshot previous) {
+
+        String requestedPlaceId = request.placeId() == null
+                ? previous.placeId()
+                : normalizePlaceId(request.placeId());
+
+        boolean sameVerifiedPlace =
+                previous.verificationStatus() == LocationVerificationStatus.VERIFIED
+                        && request.placeId() != null
+                        && requestedPlaceId != null
+                        && Objects.equals(previous.placeId(), requestedPlaceId);
+
+        // Google coordinates are authoritative for an already verified place.
+        // A frontend resending the same complete draft must not overwrite them
+        // or trigger another billable verification request.
+        if (sameVerifiedPlace) {
+            return;
+        }
+
+        if (request.latitude() != null) {
+            listing.setLatitude(request.latitude());
+        }
+        if (request.longitude() != null) {
+            listing.setLongitude(request.longitude());
+        }
+        if (request.placeId() != null) {
+            boolean changedToAnotherPlace = requestedPlaceId != null
+                    && !Objects.equals(previous.placeId(), requestedPlaceId);
+            listing.setPlaceId(requestedPlaceId);
+
+            if (changedToAnotherPlace
+                    && request.latitude() == null
+                    && request.longitude() == null) {
+                listing.setLatitude(null);
+                listing.setLongitude(null);
+            }
+        }
+
+        ListingLocationSnapshot current = ListingLocationSnapshot.from(listing);
+        if (previous.hasSameLocation(current)) {
+            return;
+        }
+
+        listing.setLocationVerificationStatus(LocationVerificationStatus.UNVERIFIED);
+        listing.setLocationVerifiedAt(null);
+        verifyAndApplyLocation(listing);
+    }
+
+    private void retryUnverifiedLocation(Listing listing) {
+        LocationVerificationStatus status =
+                listing.getLocationVerificationStatus();
+
+        if ((status == null || status == LocationVerificationStatus.UNVERIFIED)
+                && listing.getPlaceId() != null
+                && !listing.getPlaceId().isBlank()) {
+
+            verifyAndApplyLocation(listing);
+
+        }
+    }
+
+    private void verifyAndApplyLocation(Listing listing) {
+        ListingLocationVerificationService.VerificationResult verification =
+                locationVerificationService.verify(
+                        listing.getPlaceId(),
+                        listing.getLatitude(),
+                        listing.getLongitude()
+                );
+
+        listing.setLatitude(verification.latitude());
+        listing.setLongitude(verification.longitude());
+        listing.setLocationVerificationStatus(verification.status());
+        listing.setLocationVerifiedAt(verification.verifiedAt());
+    }
+
+    private String normalizePlaceId(String placeId) {
+        String normalized = placeId.trim();
+        return normalized.isBlank() ? null : normalized;
+    }
+
+    private record ListingLocationSnapshot(
+            String placeId,
+            Double latitude,
+            Double longitude,
+            LocationVerificationStatus verificationStatus
+    ) {
+        private static ListingLocationSnapshot from(Listing listing) {
+            return new ListingLocationSnapshot(
+                    listing.getPlaceId(),
+                    listing.getLatitude(),
+                    listing.getLongitude(),
+                    listing.getLocationVerificationStatus()
+            );
+        }
+
+        private boolean hasSameLocation(ListingLocationSnapshot other) {
+            return Objects.equals(placeId, other.placeId)
+                    && Objects.equals(latitude, other.latitude)
+                    && Objects.equals(longitude, other.longitude);
         }
     }
 

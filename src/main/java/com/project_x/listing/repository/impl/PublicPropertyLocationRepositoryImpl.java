@@ -242,7 +242,7 @@ public class PublicPropertyLocationRepositoryImpl
 
     private LocationMatchLevel toMatchLevel(int rank) {
         return switch (rank) {
-            case 0 -> LocationMatchLevel.EXACT;
+            case 0 -> LocationMatchLevel.NEARBY;
             case 1 -> LocationMatchLevel.LGA;
             case 2 -> LocationMatchLevel.STATE;
             default -> LocationMatchLevel.NATIONWIDE;

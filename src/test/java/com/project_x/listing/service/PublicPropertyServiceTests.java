@@ -243,7 +243,7 @@ class PublicPropertyServiceTests {
                                 List.of(new PublicPropertySearchHit(
                                         listingId,
                                         1250L,
-                                        LocationMatchLevel.EXACT
+                                        LocationMatchLevel.NEARBY
                                 )),
                                 pageable,
                                 1
@@ -267,7 +267,7 @@ class PublicPropertyServiceTests {
 
         PublicPropertyResponse response = result.getContent().getFirst();
         assertThat(response.distanceMeters()).isEqualTo(1250L);
-        assertThat(response.locationMatchLevel()).isEqualTo(LocationMatchLevel.EXACT);
+        assertThat(response.locationMatchLevel()).isEqualTo(LocationMatchLevel.NEARBY);
     }
 
     private PublicPropertyServiceImpl service(

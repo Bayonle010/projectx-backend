@@ -6,9 +6,11 @@ import com.project_x.listing.service.ListingLocationVerificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.time.Instant;
 
@@ -81,18 +83,46 @@ public class GoogleListingLocationVerificationService
                     LocationVerificationStatus.VERIFIED,
                     Instant.now()
             );
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode() == HttpStatus.BAD_REQUEST || exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+
+                log.debug(
+                        "Google rejected the place location: placeId={}, "
+                                + "status={}, durationMs={}",
+                        safePlaceId,
+                        exception.getStatusCode().value(),
+                        elapsedMilliseconds(startedAt)
+                );
+                return new VerificationResult(
+                        suppliedLatitude,
+                        suppliedLongitude,
+                        LocationVerificationStatus.VERIFICATION_FAILED,
+                        null
+                );
+            }
+
+            logUnavailable(safePlaceId, startedAt, exception);
+            return fallback;
         } catch (RuntimeException exception) {
             // Location verification enriches a listing; it must not make draft
             // saving or publication depend on Google availability.
-            log.warn(
-                    "Google place verification unavailable: placeId={}, " + "durationMs={}, error={}",
-                    safePlaceId,
-                    elapsedMilliseconds(startedAt),
-                    exception.getMessage()
-            );
-
+            logUnavailable(safePlaceId, startedAt, exception);
             return fallback;
         }
+    }
+
+    private void logUnavailable(
+            String safePlaceId,
+            long startedAt,
+            RuntimeException exception
+    ) {
+        log.warn(
+                "Google place verification unavailable: placeId={}, "
+                        + "durationMs={}, error={}",
+                safePlaceId,
+                elapsedMilliseconds(startedAt),
+                exception.getMessage()
+        );
     }
 
     private long elapsedMilliseconds(long startedAt) {
