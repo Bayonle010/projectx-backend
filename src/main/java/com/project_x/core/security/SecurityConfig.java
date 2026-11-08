@@ -9,6 +9,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.project_x.authentication.socialauth.handler.OAuh2AuthenticationFailureHandler;
 import com.project_x.authentication.socialauth.handler.OAuth2AuthenticationSuccessHandler;
 import com.project_x.authentication.socialauth.service.impl.CustomOauth2UserServiceImpl;
+import com.project_x.core.filter.ApiRouteValidationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +43,11 @@ public class SecurityConfig {
     private final OAuh2AuthenticationFailureHandler oAuh2AuthenticationFailureHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtAuthFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtFilter jwtAuthFilter,
+            ApiRouteValidationFilter apiRouteValidationFilter
+    ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -69,7 +74,14 @@ public class SecurityConfig {
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuh2AuthenticationFailureHandler)
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterBefore(
+                        apiRouteValidationFilter,
+                        JwtFilter.class
+                );
 
         return http.build();
     }
