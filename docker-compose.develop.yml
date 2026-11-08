@@ -1,4 +1,4 @@
-      name: projectx
+name: projectx
 
 services:
   app:
