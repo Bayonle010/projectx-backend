@@ -7,13 +7,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import tools.jackson.databind.ObjectMapper;
 
 import java.lang.reflect.Proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class JwtFilterTests {
 
@@ -127,7 +130,16 @@ class JwtFilterTests {
                 userService,
                 jwtUtil,
                 new CustomUserDetailsServiceImpl(userService),
-                new CustomAuthEntryPoint(new ObjectMapper())
+                new CustomAuthEntryPoint(
+                        new ObjectMapper(),
+                        emptyHandlerMappingProvider()
+                )
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    private ObjectProvider<RequestMappingHandlerMapping>
+    emptyHandlerMappingProvider() {
+        return mock(ObjectProvider.class);
     }
 }
