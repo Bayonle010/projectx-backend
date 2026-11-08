@@ -38,3 +38,9 @@ build/
 .env.test
 .env.docker
 .env.local
+
+# Local database backups
+*.dump
+
+# Local database backups
+*.dump

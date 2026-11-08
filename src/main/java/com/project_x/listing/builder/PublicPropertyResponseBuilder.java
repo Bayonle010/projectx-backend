@@ -13,6 +13,7 @@ import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.entity.PropertyType;
 import com.project_x.listing.entity.WaterSource;
+import com.project_x.listing.enums.LocationMatchLevel;
 import com.project_x.user.entity.User;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,15 @@ public class PublicPropertyResponseBuilder {
     public PublicPropertyResponse toResponse(
             Listing listing,
             String coverImageUrl
+    ) {
+        return toResponse(listing, coverImageUrl, null, null);
+    }
+
+    public PublicPropertyResponse toResponse(
+            Listing listing,
+            String coverImageUrl,
+            Long distanceMeters,
+            LocationMatchLevel locationMatchLevel
     ) {
         PropertyType propertyType = listing.getPropertyType();
         State state = listing.getState();
@@ -49,6 +59,8 @@ public class PublicPropertyResponseBuilder {
                 .rentAmount(listing.getRentAmount())
                 .rentPaymentFrequency(listing.getRentPaymentFrequency())
                 .coverImageUrl(coverImageUrl)
+                .distanceMeters(distanceMeters)
+                .locationMatchLevel(locationMatchLevel)
                 .owner(toOwnerResponse(listing.getOwner()))
                 .createdAt(listing.getCreatedAt())
                 .build();

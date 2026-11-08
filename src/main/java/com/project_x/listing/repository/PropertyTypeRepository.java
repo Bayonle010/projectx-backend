@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface PropertyTypeRepository
@@ -24,4 +25,6 @@ public interface PropertyTypeRepository
     List<PropertyType> findAllByActiveTrueOrderByNameAsc();
 
     List<PropertyType> findAllByOrderByNameAsc();
+
+    long countByIdInAndActiveTrue(Set<UUID> ids);
 }

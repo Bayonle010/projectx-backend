@@ -50,6 +50,8 @@ public record ListingResponse(
         Double latitude,
         Double longitude,
         String placeId,
+        LocationVerificationStatus locationVerificationStatus,
+        Instant locationVerifiedAt,
 
         Boolean shareAddressWithSeekers,
 

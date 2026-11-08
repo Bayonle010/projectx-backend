@@ -79,6 +79,7 @@ app:
 
   listing:
     friendly-id-prefix: ${LISTING_FRIENDLY_ID_PREFIX:PIL}
+    nearby-radius-meters: ${LISTING_NEARBY_RADIUS_METERS:25000}
 
   cors:
     allowed-origins: "*"
@@ -110,3 +111,14 @@ openai:
   max-output-tokens: ${OPENAI_MAX_OUTPUT_TOKENS:350}
   connect-timeout-ms: ${OPENAI_CONNECT_TIMEOUT_MS:10000}
   response-timeout-ms: ${OPENAI_RESPONSE_TIMEOUT_MS:120000}
+
+google:
+  maps:
+    api-key: ${GOOGLE_MAPS_API_KEY:}
+    base-url: ${GOOGLE_MAPS_BASE_URL:https://places.googleapis.com/v1}
+    geocoding-base-url: ${GOOGLE_GEOCODING_BASE_URL:https://geocode.googleapis.com/v4}
+    connect-timeout-ms: 3000
+    response-timeout-ms: 5000
+    location-cache-ttl-ms: ${GOOGLE_LOCATION_CACHE_TTL_MS:3600000}
+    location-failure-cache-ttl-ms: ${GOOGLE_LOCATION_FAILURE_CACHE_TTL_MS:300000}
+    location-cache-max-entries: ${GOOGLE_LOCATION_CACHE_MAX_ENTRIES:10000}

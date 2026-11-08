@@ -5,6 +5,7 @@ import com.project_x.core.response.ResponseUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.InvalidParameterException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -59,7 +60,7 @@ public class GlobalExceptionHandler {
                 : "request";
 
         String errorMessage = fieldError != null
-                ? fieldError.getDefaultMessage()
+                ? buildReadableFieldError(fieldError)
                 : "Request validation failed";
 
         log.warn(
@@ -78,6 +79,48 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
+    }
+
+    private String buildReadableFieldError(FieldError fieldError) {
+        if (!isTypeMismatch(fieldError)) {
+            return fieldError.getDefaultMessage() != null
+                    ? fieldError.getDefaultMessage()
+                    : "Invalid value for field '" + fieldError.getField() + "'";
+        }
+
+        return switch (fieldError.getField()) {
+            case "bedroomCounts" ->
+                    "Bedroom counts must contain only whole numbers: 0, 1, 2, 3, 4, or 5";
+            case "bathroomCounts" ->
+                    "Bathroom counts must contain only whole numbers: 1, 2, 3, 4, or 5";
+            case "toiletCounts" ->
+                    "Toilet counts must contain only whole numbers: 1, 2, 3, or 4";
+            case "propertyTypeIds" ->
+                    "Property type IDs must contain only valid UUIDs";
+            case "stateId" ->
+                    "State ID must be a valid UUID";
+            case "lgaId" ->
+                    "Local government area ID must be a valid UUID";
+            case "minRent" ->
+                    "Minimum rent must be a valid number";
+            case "maxRent" ->
+                    "Maximum rent must be a valid number";
+            case "page" ->
+                    "Page must be a whole number";
+            case "pageSize" ->
+                    "Page size must be a whole number";
+            default ->
+                    "Invalid value for field '" + fieldError.getField() + "'";
+        };
+    }
+
+    private boolean isTypeMismatch(FieldError fieldError) {
+        String[] errorCodes = fieldError.getCodes();
+
+        return errorCodes != null
+                && Arrays.stream(errorCodes)
+                .filter(java.util.Objects::nonNull)
+                .anyMatch(code -> code.startsWith("typeMismatch"));
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -159,6 +202,24 @@ public class GlobalExceptionHandler {
                 "Invalid value for request parameter '" + parameterName
                         + "'. Expected " + expectedType,
                 "Invalid request parameter",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<ApiResponse> handleInvalidParameterEncoding(
+            InvalidParameterException ex
+    ) {
+        log.warn("Invalid request parameter encoding: {}", ex.getMessage());
+
+        ApiResponse errorResponse = ResponseUtil.error(
+                HttpStatus.BAD_REQUEST.value(),
+                "Request parameters contain invalid URL encoding",
+                "Encode special characters before sending the request",
                 null
         );
 

@@ -91,6 +91,10 @@ public class ListingResponseBuilder {
                 .latitude(listing.getLatitude())
                 .longitude(listing.getLongitude())
                 .placeId(listing.getPlaceId())
+                .locationVerificationStatus(
+                        listing.getLocationVerificationStatus()
+                )
+                .locationVerifiedAt(listing.getLocationVerifiedAt())
 
                 .shareAddressWithSeekers(
                         listing.getShareAddressWithSeekers()

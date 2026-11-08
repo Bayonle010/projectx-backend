@@ -2,16 +2,25 @@ package com.project_x.listing.service;
 
 import com.project_x.adress.entity.Lga;
 import com.project_x.adress.entity.State;
+import com.project_x.adress.repository.LgaRepository;
+import com.project_x.adress.repository.StateRepository;
+import com.project_x.core.exception.BadRequestException;
 import com.project_x.listing.builder.PublicPropertyResponseBuilder;
+import com.project_x.listing.dto.request.PublicPropertyFilterRequest;
 import com.project_x.listing.dto.response.PublicPropertyDetailsResponse;
 import com.project_x.listing.dto.response.PublicPropertyResponse;
 import com.project_x.listing.entity.Listing;
 import com.project_x.listing.entity.ListingImage;
 import com.project_x.listing.entity.PropertyType;
 import com.project_x.listing.enums.ListingStatus;
+import com.project_x.listing.enums.LocationMatchLevel;
 import com.project_x.listing.repository.ListingImageRepository;
 import com.project_x.listing.repository.ListingRepository;
+import com.project_x.listing.repository.PropertyTypeRepository;
+import com.project_x.listing.repository.PublicPropertyLocationRepository;
+import com.project_x.listing.repository.PublicPropertySearchHit;
 import com.project_x.listing.service.impl.PublicPropertyServiceImpl;
+import com.project_x.listing.validation.PublicPropertyFilterValidator;
 import com.project_x.user.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -23,11 +32,13 @@ import java.lang.reflect.Proxy;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PublicPropertyServiceTests {
 
@@ -35,8 +46,6 @@ class PublicPropertyServiceTests {
     void fetchesOnlyPublishedPropertiesAndLoadsCoversInOneBatch() {
         UUID listingId = UUID.randomUUID();
         Listing listing = listing(listingId);
-        AtomicReference<ListingStatus> requestedStatus =
-                new AtomicReference<>();
         AtomicReference<Pageable> requestedPageable =
                 new AtomicReference<>();
         AtomicReference<List<UUID>> coverListingIds =
@@ -46,8 +55,11 @@ class PublicPropertyServiceTests {
         ListingRepository listingRepository = repository(
                 ListingRepository.class,
                 (proxy, method, arguments) -> {
-                    if (method.getName().equals("findByStatus")) {
-                        requestedStatus.set((ListingStatus) arguments[0]);
+                    if (
+                            method.getName().equals("findAll")
+                                    && arguments.length == 2
+                                    && arguments[1] instanceof Pageable
+                    ) {
                         requestedPageable.set((Pageable) arguments[1]);
                         return new PageImpl<>(
                                 List.of(listing),
@@ -80,15 +92,14 @@ class PublicPropertyServiceTests {
                 }
         );
 
-        Page<PublicPropertyResponse> result =
-                new PublicPropertyServiceImpl(
-                        listingRepository,
-                        imageRepository,
-                        new PublicPropertyResponseBuilder()
-                ).fetchPublishedProperties(1L, 20L);
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
 
-        assertThat(requestedStatus.get())
-                .isEqualTo(ListingStatus.PUBLISHED);
+        Page<PublicPropertyResponse> result = service(
+                listingRepository,
+                imageRepository
+        ).fetchPublishedProperties(filter);
+
         assertThat(requestedPageable.get().getPageNumber()).isZero();
         assertThat(requestedPageable.get().getPageSize()).isEqualTo(20);
         assertThat(coverQueries.get()).isEqualTo(1);
@@ -124,16 +135,14 @@ class PublicPropertyServiceTests {
                 }
         );
 
-        PublicPropertyDetailsResponse result =
-                new PublicPropertyServiceImpl(
-                        listingRepository,
-                        repository(
-                                ListingImageRepository.class,
-                                (proxy, method, arguments) ->
-                                        defaultValue(method.getReturnType())
-                        ),
-                        new PublicPropertyResponseBuilder()
-                ).fetchPublishedProperty(listingId);
+        PublicPropertyDetailsResponse result = service(
+                listingRepository,
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        ).fetchPublishedProperty(listingId);
 
         assertThat(requestedId.get()).isEqualTo(listingId);
         assertThat(requestedStatus.get())
@@ -143,6 +152,244 @@ class PublicPropertyServiceTests {
         assertThat(result.landmark()).isNull();
         assertThat(result.latitude()).isNull();
         assertThat(result.longitude()).isNull();
+    }
+
+    @Test
+    void rejectsLgaFilterWhenStateIsMissing() {
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
+        filter.setLgaId(UUID.randomUUID());
+
+        PublicPropertyServiceImpl service = service(
+                repository(
+                        ListingRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                ),
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        );
+
+        assertThatThrownBy(() ->
+                service.fetchPublishedProperties(filter)
+        )
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(
+                        "Select a state before selecting a local government area"
+                );
+    }
+
+    @Test
+    void acceptsZeroAsStudioBedroomFilter() {
+        AtomicInteger listingQueries = new AtomicInteger();
+
+        ListingRepository listingRepository = repository(
+                ListingRepository.class,
+                (proxy, method, arguments) -> {
+                    if (
+                            method.getName().equals("findAll")
+                                    && arguments.length == 2
+                                    && arguments[1] instanceof Pageable pageable
+                    ) {
+                        listingQueries.incrementAndGet();
+                        return Page.empty(pageable);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
+        filter.setBedroomCounts(Set.of(0));
+
+        Page<PublicPropertyResponse> result = service(
+                listingRepository,
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        ).fetchPublishedProperties(filter);
+
+        assertThat(listingQueries.get()).isEqualTo(1);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void usesNearbySearchAndReturnsDistanceWithoutExposingCoordinates() {
+        UUID listingId = UUID.randomUUID();
+        Listing listing = listing(listingId);
+        listing.setLatitude(6.6018);
+        listing.setLongitude(3.3515);
+
+        ListingRepository listingRepository = repository(
+                ListingRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("findByIdIn")) {
+                        return List.of(listing);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+        PublicPropertyLocationRepository locationRepository = repository(
+                PublicPropertyLocationRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("search")) {
+                        Pageable pageable = (Pageable) arguments[1];
+                        return new PageImpl<>(
+                                List.of(new PublicPropertySearchHit(
+                                        listingId,
+                                        1250L,
+                                        LocationMatchLevel.NEARBY
+                                )),
+                                pageable,
+                                1
+                        );
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+        PublicPropertyFilterRequest filter = new PublicPropertyFilterRequest();
+        filter.setNearLatitude(6.6000);
+        filter.setNearLongitude(3.3500);
+
+        Page<PublicPropertyResponse> result = service(
+                listingRepository,
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) -> List.of()
+                ),
+                locationRepository
+        ).fetchPublishedProperties(filter);
+
+        PublicPropertyResponse response = result.getContent().getFirst();
+        assertThat(response.distanceMeters()).isEqualTo(1250L);
+        assertThat(response.locationMatchLevel()).isEqualTo(LocationMatchLevel.NEARBY);
+    }
+
+    @Test
+    void resolvesMissingStateAndLgaFromNearbyCoordinates() {
+        UUID stateId = UUID.randomUUID();
+        UUID lgaId = UUID.randomUUID();
+        AtomicInteger resolutionCalls = new AtomicInteger();
+        AtomicReference<PublicPropertyFilterRequest> searchedFilter =
+                new AtomicReference<>();
+
+        NearbyLocationContextResolver resolver = (latitude, longitude) -> {
+            resolutionCalls.incrementAndGet();
+            assertThat(latitude).isEqualTo(6.6018);
+            assertThat(longitude).isEqualTo(3.3515);
+            return new NearbyLocationContextResolver.LocationContext(
+                    stateId,
+                    lgaId
+            );
+        };
+
+        PublicPropertyLocationRepository locationRepository = repository(
+                PublicPropertyLocationRepository.class,
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("search")) {
+                        searchedFilter.set(
+                                (PublicPropertyFilterRequest) arguments[0]
+                        );
+                        return Page.empty((Pageable) arguments[1]);
+                    }
+                    return defaultValue(method.getReturnType());
+                }
+        );
+
+        PublicPropertyFilterRequest filter =
+                new PublicPropertyFilterRequest();
+        filter.setNearLatitude(6.6018);
+        filter.setNearLongitude(3.3515);
+
+        service(
+                repository(
+                        ListingRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                ),
+                repository(
+                        ListingImageRepository.class,
+                        (proxy, method, arguments) -> List.of()
+                ),
+                locationRepository,
+                resolver
+        ).fetchPublishedProperties(filter);
+
+        assertThat(resolutionCalls.get()).isEqualTo(1);
+        assertThat(searchedFilter.get().getNearStateId())
+                .isEqualTo(stateId);
+        assertThat(searchedFilter.get().getNearLgaId())
+                .isEqualTo(lgaId);
+    }
+
+    private PublicPropertyServiceImpl service(
+            ListingRepository listingRepository,
+            ListingImageRepository imageRepository
+    ) {
+        return service(
+                listingRepository,
+                imageRepository,
+                repository(
+                        PublicPropertyLocationRepository.class,
+                        (proxy, method, arguments) ->
+                                defaultValue(method.getReturnType())
+                )
+        );
+    }
+
+    private PublicPropertyServiceImpl service(
+            ListingRepository listingRepository,
+            ListingImageRepository imageRepository,
+            PublicPropertyLocationRepository locationRepository
+    ) {
+        return service(
+                listingRepository,
+                imageRepository,
+                locationRepository,
+                (latitude, longitude) ->
+                        NearbyLocationContextResolver.LocationContext
+                                .unresolved()
+        );
+    }
+
+    private PublicPropertyServiceImpl service(
+            ListingRepository listingRepository,
+            ListingImageRepository imageRepository,
+            PublicPropertyLocationRepository locationRepository,
+            NearbyLocationContextResolver locationContextResolver
+    ) {
+        PublicPropertyFilterValidator filterValidator =
+                new PublicPropertyFilterValidator(
+                        repository(
+                                StateRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        ),
+                        repository(
+                                LgaRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        ),
+                        repository(
+                                PropertyTypeRepository.class,
+                                (proxy, method, arguments) ->
+                                        defaultValue(method.getReturnType())
+                        )
+                );
+
+        return new PublicPropertyServiceImpl(
+                listingRepository,
+                imageRepository,
+                new PublicPropertyResponseBuilder(),
+                filterValidator,
+                locationRepository,
+                locationContextResolver
+        );
     }
 
     private Listing listing(UUID listingId) {

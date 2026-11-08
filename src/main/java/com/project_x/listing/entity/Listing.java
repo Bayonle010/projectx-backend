@@ -91,6 +91,14 @@ public class Listing {
     @Column(length = 255)
     private String placeId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    @Builder.Default
+    private LocationVerificationStatus locationVerificationStatus =
+            LocationVerificationStatus.UNVERIFIED;
+
+    private Instant locationVerifiedAt;
+
     @Column(nullable = true)
     private Boolean shareAddressWithSeekers;
 

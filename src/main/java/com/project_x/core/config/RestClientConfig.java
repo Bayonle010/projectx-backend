@@ -108,4 +108,34 @@ public class RestClientConfig {
                 .build();
     }
 
+    @Bean
+    @Qualifier("googlePlacesRestClient")
+    public RestClient googlePlacesRestClient(
+            @Value("${google.maps.base-url:https://places.googleapis.com/v1}") String baseUrl,
+            @Value("${google.maps.connect-timeout-ms:3000}") int connectTimeoutMs,
+            @Value("${google.maps.response-timeout-ms:5000}") int responseTimeoutMs
+    ) {
+        // Use a dedicated client so callers receive Spring's typed HTTP
+        // exceptions and can distinguish an invalid place from an outage.
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(createRequestFactory(connectTimeoutMs, responseTimeoutMs))
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
+
+    @Bean
+    @Qualifier("googleGeocodingRestClient")
+    public RestClient googleGeocodingRestClient(
+            @Value("${google.maps.geocoding-base-url:https://geocode.googleapis.com/v4}") String baseUrl,
+            @Value("${google.maps.connect-timeout-ms:3000}") int connectTimeoutMs,
+            @Value("${google.maps.response-timeout-ms:5000}") int responseTimeoutMs
+    ) {
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(createRequestFactory(connectTimeoutMs, responseTimeoutMs))
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
+
 }

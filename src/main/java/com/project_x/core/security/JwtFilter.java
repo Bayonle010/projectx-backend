@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -125,12 +126,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        return uri.startsWith("/swagger-ui/") || uri.equals("/v2/api-docs")
-                || uri.startsWith("/v3/api-docs/") || uri.startsWith("/swagger-resources/")
-                || uri.startsWith("/configuration/ui") || uri.startsWith("/configuration/security")
-                || uri.startsWith("/webjars/") || uri.equals("/swagger-ui.html")
-                || uri.startsWith("/api/v1/auth/") || uri.startsWith("/login/")
-                || uri.startsWith("/oauth2/") || uri.startsWith("/ws/");
+        return HttpMethod.OPTIONS.matches(request.getMethod())
+                || PublicEndpointRegistry.isPublicRequest(request);
     }
 }

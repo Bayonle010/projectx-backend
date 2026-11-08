@@ -41,48 +41,23 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuh2AuthenticationFailureHandler oAuh2AuthenticationFailureHandler;
 
-    private static final String[] WHITE_LIST_URL = {
-            "/swagger-ui/**",
-            "/api/v1/auth/**",
-            "/login/**",
-            "/oauth2/**",
-            "/v2/api-docs",
-            "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/configuration/ui",
-            "/configuration/security",
-            "/webjars/**",
-            "/swagger-ui.html",
-            "/ws/**",
-    };
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(WHITE_LIST_URL).permitAll()
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/v1/reviews/listings/*",
-                                "/api/v1/reviews/listings/*/summary",
-                                "/api/v1/reviews/*",
-                                "/api/v1/reviews/*/comments",
-                                "/api/v1/coverage/**",
-                                "/api/v1/locations/**",
-                                "/api/v1/amenities",
-                                "/api/v1/amenities/*",
-                                "/api/v1/property-types",
-                                "/api/v1/property-types/*",
-                                "/api/v1/water-sources",
-                                "/api/v1/water-sources/*",
-                                "/api/v1/properties",
-                                "/api/v1/properties/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                    auth.requestMatchers(
+                            PublicEndpointRegistry.endpointsForAnyMethod()
+                    ).permitAll();
+                    PublicEndpointRegistry.endpointsByMethod().forEach(
+                            (method, patterns) -> auth
+                                    .requestMatchers(method, patterns)
+                                    .permitAll()
+                    );
+                    auth.anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

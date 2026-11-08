@@ -1,6 +1,7 @@
 package com.project_x.listing.dto.response;
 
 import com.project_x.listing.enums.ListingRelationshipType;
+import com.project_x.listing.enums.LocationMatchLevel;
 import com.project_x.listing.enums.RentPaymentFrequency;
 import lombok.Builder;
 
@@ -26,6 +27,8 @@ public record PublicPropertyResponse(
         BigDecimal rentAmount,
         RentPaymentFrequency rentPaymentFrequency,
         String coverImageUrl,
+        Long distanceMeters,
+        LocationMatchLevel locationMatchLevel,
         PublicPropertyOwnerResponse owner,
         Instant createdAt
 ) {
