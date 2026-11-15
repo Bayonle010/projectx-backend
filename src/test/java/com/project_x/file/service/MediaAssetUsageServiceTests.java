@@ -27,11 +27,12 @@ class MediaAssetUsageServiceTests {
         service.replace(MediaEntityType.LISTING, listingId, MediaUsageType.IMAGE,
                 List.of(image, image));
 
-        verify(repository).deleteByEntityTypeAndEntityIdAndUsageType(
-                MediaEntityType.LISTING, listingId, MediaUsageType.IMAGE);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<MediaAssetUsage>> usages = ArgumentCaptor.forClass(List.class);
-        verify(repository).saveAll(usages.capture());
+        InOrder replacementOrder = inOrder(repository);
+        replacementOrder.verify(repository).deleteByEntityTypeAndEntityIdAndUsageType(
+                MediaEntityType.LISTING, listingId, MediaUsageType.IMAGE);
+        replacementOrder.verify(repository).saveAll(usages.capture());
         assertEquals(1, usages.getValue().size());
         assertEquals(image.getId(), usages.getValue().getFirst().getMediaAsset().getId());
     }
