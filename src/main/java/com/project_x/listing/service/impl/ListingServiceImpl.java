@@ -134,6 +134,7 @@ public class ListingServiceImpl implements ListingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GeneratedListingDescriptionResponse generateDescription(
             UUID listingId,
             AuthenticationIdentity authenticationIdentity

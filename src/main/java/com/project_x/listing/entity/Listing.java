@@ -6,6 +6,7 @@ import com.project_x.listing.enums.*;
 import com.project_x.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -125,6 +126,7 @@ public class Listing {
     private String proofOfOwnershipUrl;
 
     @ManyToMany
+    @BatchSize(size = 50)
     @JoinTable(
             name = "listing_amenities",
             joinColumns = @JoinColumn(name = "listing_id"),
@@ -140,6 +142,7 @@ public class Listing {
     private PropertyType propertyType;
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @JoinTable(
             name = "listing_water_sources",
             joinColumns = @JoinColumn(
@@ -166,6 +169,7 @@ public class Listing {
     private Set<WaterSource> waterSources = new HashSet<>();
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<ListingImage> images = new ArrayList<>();
 
     @Column(name = "video_url", nullable = true)
