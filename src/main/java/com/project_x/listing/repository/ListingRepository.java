@@ -42,11 +42,8 @@ public interface ListingRepository
     @EntityGraph(attributePaths = {
             "state",
             "lga",
-            "amenities",
-            "images",
             "owner",
-            "propertyType",
-            "waterSources"
+            "propertyType"
     })
     Optional<Listing> findByIdAndOwnerId(
             UUID id,
@@ -56,11 +53,8 @@ public interface ListingRepository
     @EntityGraph(attributePaths = {
             "state",
             "lga",
-            "amenities",
-            "images",
             "owner",
-            "propertyType",
-            "waterSources"
+            "propertyType"
     })
     Optional<Listing> findWithDetailsByIdAndOwnerId(
             UUID id,
@@ -70,11 +64,8 @@ public interface ListingRepository
     @EntityGraph(attributePaths = {
             "state",
             "lga",
-            "amenities",
-            "images",
             "owner",
-            "propertyType",
-            "waterSources"
+            "propertyType"
     })
     Page<Listing> findByOwnerId(
             UUID ownerId,
@@ -84,11 +75,8 @@ public interface ListingRepository
     @EntityGraph(attributePaths = {
             "state",
             "lga",
-            "amenities",
-            "images",
             "owner",
-            "propertyType",
-            "waterSources"
+            "propertyType"
     })
     Page<Listing> findByOwnerIdAndStatus(
             UUID ownerId,
